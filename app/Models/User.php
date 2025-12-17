@@ -30,7 +30,8 @@ class User extends Authenticatable
         'goals',
         'role',          // 'admin', 'trainer', 'client'
         'birth_date',
-        'profile_photo'
+        'profile_photo',
+        'assigned_trainer_id'
     ];
 
     /**
@@ -52,4 +53,16 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed', // Esto encripta la contraseña automático
     ];
+
+    //// Relación: Si soy cliente, tengo un solo entrenador
+    public function trainer()
+    {
+        return $this->belongsTo(User::class, 'assigned_trainer_id');
+    }
+
+    //// Relación:Si soy entrenador, tengo muchos clientes
+    public function cliente()
+    {
+        return $this->hasMany(User::class, 'assigned_trainer_id');
+    }
 }

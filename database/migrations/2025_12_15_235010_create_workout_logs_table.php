@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->date('workout_date');
 
-            $table->integer('duration')->unsigned(); // minutos
+            $table->integer('duration')->unsigned()->nullable(); // minutos
             $table->decimal('weight_used', 5, 2)->unsigned()->nullable(); // kg
             $table->integer('reps')->unsigned()->nullable();
             $table->text('notes')->nullable();

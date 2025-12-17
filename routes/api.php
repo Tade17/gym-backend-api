@@ -9,6 +9,9 @@ use App\Http\Controllers\RoutineController;
 use App\Http\Controllers\RoutineExerciseController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AssignedRoutineController;
+use App\Http\Controllers\DietPlanController;
+use App\Http\Controllers\MealController;
+use App\Http\Controllers\AssignedDietController;
 
 // 1. Rutas Públicas
 //Para el registro y login
@@ -69,7 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // RUTINA-EJERCICIOS (Pivot)
     // Agregar ejercicio a una rutina específica
     Route::post('/routines/{id}/exercises', [RoutineExerciseController::class, 'store']);
-    
+
     // Quitar un ejercicio de una rutina (por el ID de la asignación)
     Route::delete('/routine-exercises/{id}', [RoutineExerciseController::class, 'destroy']);
 
@@ -85,4 +88,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/schedule', [AssignedRoutineController::class, 'index']);  // Ver agenda
     Route::put('/schedule/{id}/complete', [AssignedRoutineController::class, 'complete']); // Marcar listo
 
+
+    // --- DIETAS ---
+    Route::get('/diets', [DietPlanController::class, 'index']);      // Ver mis dietas
+    Route::post('/diets', [DietPlanController::class, 'store']);     // Crear dieta
+    Route::delete('/diets/{id}', [DietPlanController::class, 'destroy']); // Borrar
+
+    // --- COMIDAS (Dentro de dietas) ---
+    Route::get('/diets/{id}/meals', [MealController::class, 'index']); // Ver comidas de la dieta X
+    Route::post('/diets/{id}/meals', [MealController::class, 'store']); // Agregar comida a la dieta X
+
+    // -- ASIGNACIÓN DE DIETAS ---
+    Route::post('/assigned-diets', [AssignedDietController::class, 'store']); // Asignar
+    Route::get('/users/{id}/diet', [AssignedDietController::class, 'showUserDiet']); // Ver dieta del alumno
 });
