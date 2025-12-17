@@ -25,7 +25,9 @@ class PlanController extends Controller
             'price' => 'required|numeric',
             'duration_days' => 'required|integer',
             'description' => 'required|string',
-            'is_active' => 'sometimes|boolean'
+            'is_active' => 'sometimes|boolean',
+            'type_plan'=>'required|string|in:basic,pro,personalized',
+            'trainer_id' => 'required|exists:users,id'
         ]);
 
         // Creamos el plan en la BD
@@ -67,7 +69,9 @@ class PlanController extends Controller
             'price' =>'sometimes|numeric',
             'duration_days'=>'sometimes|integer',
             'description'=>'sometimes|string',
-            'is_active'=>'sometimes|boolean'
+            'is_active'=>'sometimes|boolean',
+            'type_plan'=>'sometimes|string|in:basic,pro,personalized',
+            'trainer_id'=>'sometimes|exists:users,id'
         ]);
 
         //actualizamos el plan 
@@ -80,7 +84,6 @@ class PlanController extends Controller
     }
 
     // DELETE: Eliminar un plan (DELETE /api/plans/{id})
-    //Pero como agregamos SoftDeletes en el modelo, no se elimina realmente
     public function destroy($id){
         $plan=Plan::find($id);
         if(!$plan){

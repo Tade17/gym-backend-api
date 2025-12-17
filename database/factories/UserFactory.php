@@ -37,6 +37,7 @@ class UserFactory extends Factory
             'height' => fake()->randomFloat(2, 1.50, 2.00), // Altura entre 1.50 y 2.00
             'birth_date' => fake()->date('Y-m-d', '2005-01-01'), // Fecha nacimiento aleatoria
             'profile_photo' => 'default.png',
+            'assigned_trainer_id' => null, // Por defecto null, se puede asignar luego
             'email_verified_at' => now(),
             'remember_token' => Str::random(10)
         ];

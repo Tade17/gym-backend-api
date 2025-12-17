@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Plan extends Model
 {
-    // IMPORTANTE: Al poner SoftDeletes aquí, Laravel sabe que
+    // Al poner SoftDeletes aquí, Laravel sabe que
     // cuando borremos algo, no debe eliminar la fila, solo marcar 'deleted_at'
     use HasFactory, SoftDeletes;
 
@@ -18,9 +18,10 @@ class Plan extends Model
         'duration_days',
         'description',
         'is_active',
+        'type',
         'trainer_id'
     ];
-
+    //Cada plan pertenece a un entrenador
     public function trainer()
     {
         return $this->belongsTo(User::class, 'trainer_id');

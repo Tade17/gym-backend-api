@@ -78,10 +78,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // SUSCRIPCIONES
-    Route::post('/subscriptions', [SubscriptionController::class, 'store']); // Crear
-    Route::get('/users/{id}/subscriptions', [SubscriptionController::class, 'getUserSubscriptions']); // Ver historial
-    Route::put('/subscriptions/{id}/cancel', [SubscriptionController::class, 'cancel']); // Cancelar
-
+    Route::post('/subscribe', [SubscriptionController::class, 'store']);
+    Route::get('/my-subscription', [SubscriptionController::class, 'mySubscription']);
 
     // --- AGENDA DE ENTRENAMIENTO ---
     Route::post('/schedule', [AssignedRoutineController::class, 'store']); // Agendar

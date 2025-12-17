@@ -31,7 +31,7 @@ class User extends Authenticatable
         'role',          // 'admin', 'trainer', 'client'
         'birth_date',
         'profile_photo',
-        'assigned_trainer_id'
+        'assigned_trainer_id'//solo para clientes
     ];
 
     /**
@@ -54,15 +54,24 @@ class User extends Authenticatable
         'password' => 'hashed', // Esto encripta la contraseña automático
     ];
 
-    //// Relación: Si soy cliente, tengo un solo entrenador
+    //Si soy cliente, tengo un solo entrenador
     public function trainer()
     {
         return $this->belongsTo(User::class, 'assigned_trainer_id');
     }
 
-    //// Relación:Si soy entrenador, tengo muchos clientes
-    public function cliente()
+    // Si soy entrenador, tengo muchos clientes
+    public function client()
     {
         return $this->hasMany(User::class, 'assigned_trainer_id');
+    }
+    
+    // Relación: Un entrenador puede tener muchos planes
+    public function plans(){
+        return $this->hasMany(Plan::class, 'trainer_id');
+    }
+     
+    public function subscription(){
+        return $this->hasOne(Subscription::class, 'user_id');
     }
 }

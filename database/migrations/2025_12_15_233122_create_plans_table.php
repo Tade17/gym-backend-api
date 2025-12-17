@@ -15,16 +15,16 @@ return new class extends Migration
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
 
-
             $table->string('name', 100)->unique();
             $table->text('description')->nullable();
-
             $table->decimal('price', 8, 2)->unsigned();
             $table->integer('duration_days')->unsigned(); // 30, 90, 365
-
             $table->boolean('is_active')->default(true);
-            $table->softDeletes(); // Agrega columna deleted_at
-            
+            $table->enum('type',['basic','Pro','Personalized']);
+            //para ver que entrenador ofrece este plan y a que precio
+            $table->foreignId('trainer_id')->constrained('users')->cascadeOnDelete();
+
+            $table->softDeletes();//sofdelete hace que no se borre fisicamente el registro sino que se marque eliminado
             $table->timestamps();
         });
     }
