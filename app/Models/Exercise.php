@@ -14,4 +14,10 @@ class Exercise extends Model
         'muscle_group',
         'video_url'
     ];
+    // Un ejercicio puede estar en muchas rutinas diferentes
+    public function routines() {
+    return $this->belongsToMany(Routine::class, 'routine_exercises')
+                ->withPivot('sets', 'reps', 'duration_seconds', 'rest_seconds')
+                ->withTimestamps();
+}
 }

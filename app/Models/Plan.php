@@ -18,5 +18,9 @@ class Plan extends Model
         'description',
         'is_active'
     ];
-
+    // Un plan tiene muchas suscripciones (históricas o activas)
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
 }

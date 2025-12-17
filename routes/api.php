@@ -13,7 +13,7 @@ use App\Http\Controllers\AssignedRoutineController;
 // 1. Rutas Públicas
 //Para el registro y login
 Route::prefix('/auth')->group(function () {
-    Route::post('register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 });
 

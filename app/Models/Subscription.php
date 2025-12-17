@@ -28,6 +28,6 @@ class Subscription extends Model
     //Una suscripción pertenece a un Plan
     public function plan()
     {
-        return $this->belongTo(Plan::class);
+        return $this->belongsTo(Plan::class);
     }
 }
