@@ -18,16 +18,12 @@ class PlanFactory extends Factory
     {
         return [
             // Eloquent inventará datos por nosotros
-            'name' => fake()->unique()->word() . ' Plan', // Ej: "Titan Plan"
+            'type' => fake()->randomElement(['basic', 'pro', 'personalized']),
             'description' => fake()->sentence(), // Una oración falsa
             'price' => fake()->randomFloat(2, 50, 200), // Precio entre 50.00 y 200.00
             'duration_days' => fake()->randomElement([30, 90, 365]), // Elige uno de estos
-            'type' => fake()->randomElement(['basic', 'pro', 'personalized']),
             'is_active' => true,
-
-            // BUSCA UN ENTRENADOR EXISTENTE O CREA UNO NUEVO
-            'trainer_id' => User::where('role', 'trainer')->first()->id 
-                            ?? User::factory()->create(['role' => 'trainer'])->id, // Se asignará un entrenador real al crear el plan
+            'trainer_id' => User::factory()->create(['role' => 'trainer'])->id,
         ];
     }
 }

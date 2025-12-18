@@ -13,12 +13,11 @@ class Plan extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name',
+        'type',
         'price',
         'duration_days',
         'description',
         'is_active',
-        'type',
         'trainer_id'
     ];
     //Cada plan pertenece a un entrenador

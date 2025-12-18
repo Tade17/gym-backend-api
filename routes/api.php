@@ -99,4 +99,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // -- ASIGNACIÓN DE DIETAS ---
     Route::post('/assigned-diets', [AssignedDietController::class, 'store']); // Asignar
     Route::get('/users/{id}/diet', [AssignedDietController::class, 'showUserDiet']); // Ver dieta del alumno
+
+    // Gestión del Entrenador
+    Route::get('/trainer/students', [AssignedRoutineController::class, 'myStudents']);
+    Route::get('/trainer/my-plans', [AssignedRoutineController::class, 'myPlans']);
+    Route::get('/trainer/my-routines', [AssignedRoutineController::class, 'myRoutines']);
+    Route::post('/trainer/assign-routine', [AssignedRoutineController::class, 'assignToStudent']);
+    Route::post('/trainer/mass-assign', [AssignedRoutineController::class, 'massAssign']);
 });

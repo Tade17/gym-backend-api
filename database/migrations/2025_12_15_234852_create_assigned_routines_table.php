@@ -13,29 +13,18 @@ return new class extends Migration
     {
         Schema::create('assigned_routines', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('user_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->date('assigned_date');
+            $table->tinyInteger('status')->default(0);
+            $table->tinyInteger('rating')->unsigned()->nullable();
 
             $table->foreignId('routine_id')
-                ->constrained()
-                ->restrictOnDelete();
-
-            $table->date('assigned_date');
-
-            $table->tinyInteger('status')
-                ->default(0)
-                ->comment('0=pending, 1=completed, 2=skipped');
-                
-            $table->tinyInteger('rating')
-                ->unsigned()
-                ->nullable()
-                ->comment('1 to 5 stars');
+                ->constrained('routines')
+                ->cascadeOnDelete();
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
 
             $table->timestamps();
-
-            $table->unique(['user_id', 'routine_id', 'assigned_date']);
         });
     }
 

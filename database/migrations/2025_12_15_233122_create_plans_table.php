@@ -15,12 +15,11 @@ return new class extends Migration
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
 
-            $table->string('name', 100)->unique();
+            $table->enum('type',['basic','Pro','Personalized']);
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2)->unsigned();
             $table->integer('duration_days')->unsigned(); // 30, 90, 365
             $table->boolean('is_active')->default(true);
-            $table->enum('type',['basic','Pro','Personalized']);
             //para ver que entrenador ofrece este plan y a que precio
             $table->foreignId('trainer_id')->constrained('users')->cascadeOnDelete();
 

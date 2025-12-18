@@ -29,29 +29,26 @@ class TrainerWithPlansSeeder extends Seeder
 
         // 2. Crear los 3 tipos de planes para este entrenador
         Plan::create([
-            'name' => 'Plan Inicial Básico',
+            'type' => 'basic',
             'description' => 'Acceso solo a rutinas básicas.',
             'price' => 50.00,
             'duration_days' => 30,
-            'type' => 'basic',
             'trainer_id' => $trainer->id,
         ]);
 
         Plan::create([
-            'name' => 'Plan Pro Fitness',
+            'type' => 'pro',
             'description' => 'Incluye rutinas avanzadas y guía de nutrición.',
             'price' => 120.00,
             'duration_days' => 30,
-            'type' => 'pro',
             'trainer_id' => $trainer->id,
         ]);
 
         Plan::create([
-            'name' => 'Plan Elite Personalizado',
+            'type' => 'personalized',
             'description' => 'Seguimiento 1 a 1 y chat directo.',
             'price' => 250.00,
             'duration_days' => 30,
-            'type' => 'personalized',
             'trainer_id' => $trainer->id,
         ]);
     }
