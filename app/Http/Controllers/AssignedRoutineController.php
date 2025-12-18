@@ -34,7 +34,9 @@ class AssignedRoutineController extends Controller
     public function myRoutines()
     {
         $trainerId = Auth::id();
-        $routines = Routine::where('trainer_id', $trainerId)->get();
+        $routines = Routine::where('trainer_id', $trainerId)
+            ->with('exercises')
+            ->get();
 
         return response()->json($routines);
     }
@@ -60,7 +62,7 @@ class AssignedRoutineController extends Controller
                 'message' => 'El alumno no te pertenece o no tiene una suscripción activa.'
             ], 403);
         }
-        
+
         $assignment = AssignedRoutine::create([
             'user_id' => $request->user_id,
             'routine_id' => $request->routine_id,

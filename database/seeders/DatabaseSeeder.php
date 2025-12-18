@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        // 1. Crear un usuario ADMIN real (para que tú puedas hacer login)
+        // 1. Crear un usuario ADMIN real 
         User::factory()->create([
             'first_name' => 'Tadeo',
             'last_name' => 'Mendoza Gastulo',

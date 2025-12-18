@@ -12,6 +12,8 @@ use App\Http\Controllers\AssignedRoutineController;
 use App\Http\Controllers\DietPlanController;
 use App\Http\Controllers\MealController;
 use App\Http\Controllers\AssignedDietController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\TrainerReportController;
 
 // 1. Rutas Públicas
 //Para el registro y login
@@ -46,9 +48,6 @@ Route::get('/plans/{id}', [PlanController::class, 'showById']);
 Route::get('/exercises', [ExerciseController::class, 'index']);
 Route::get('/exercises/{id}', [ExerciseController::class, 'show']);
 
-//Rutas publicas dfe rutinas
-Route::get('/routines', [RoutineController::class, 'index']);
-Route::get('/routines/{id}', [RoutineController::class, 'show']);
 
 
 
@@ -65,13 +64,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/exercises/{id}', [ExerciseController::class, 'destroy']);
 
     // RUTINAS
+    Route::get('/routines', [RoutineController::class, 'index']);
     Route::post('/routines', [RoutineController::class, 'store']);
     Route::put('/routines/{id}', [RoutineController::class, 'update']);
     Route::delete('/routines/{id}', [RoutineController::class, 'destroy']);
 
-    // RUTINA-EJERCICIOS (Pivot)
+    // ROUTINE-EXERCISE (Pivot)
     // Agregar ejercicio a una rutina específica
-    Route::post('/routines/{id}/exercises', [RoutineExerciseController::class, 'store']);
+    Route::post('/routines/{routineId}/exercises', [RoutineExerciseController::class, 'store']);
+    // Quitar un ejercicio de una rutina específica
+    Route::delete('/routines/{routineId}/exercises/{exerciseId}', [RoutineExerciseController::class, 'destroy']);
 
     // Quitar un ejercicio de una rutina (por el ID de la asignación)
     Route::delete('/routine-exercises/{id}', [RoutineExerciseController::class, 'destroy']);
@@ -106,4 +108,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/trainer/my-routines', [AssignedRoutineController::class, 'myRoutines']);
     Route::post('/trainer/assign-routine', [AssignedRoutineController::class, 'assignToStudent']);
     Route::post('/trainer/mass-assign', [AssignedRoutineController::class, 'massAssign']);
+
+    // --- RUTAS DEL ALUMNO ---
+    Route::get('/my-daily-routine', [ClientController::class, 'todayRoutine']);
+    Route::post('/log-workout', [ClientController::class, 'logWorkout']);
+
+
+
+    // --- REPORTES PARA EL ENTRENADOR ---
+    Route::get('/trainer/recent-activity', [TrainerReportController::class, 'recentActivity']);
+    Route::get('/trainer/student-progress/{studentId}', [TrainerReportController::class, 'studentProgress']);
 });
