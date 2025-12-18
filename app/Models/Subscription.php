@@ -16,16 +16,13 @@ class Subscription extends Model
         'status' //active,expired,cancelled
     ];
 
-    //relaciones
-    //Esta funcion define la relacion entre Subscription y User
     //Una suscripción pertenece a un Usuario
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    //Esta funcion define la relacion entre Subscription y Plan
-    //Una suscripción pertenece a un Plan
+    //Una suscripción tiene un Plan
     public function plan()
     {
         return $this->belongsTo(Plan::class);

@@ -30,7 +30,8 @@ class User extends Authenticatable
         'goals',
         'role',          // 'admin', 'trainer', 'client'
         'birth_date',
-        'profile_photo'
+        'profile_photo',
+        'assigned_trainer_id'//solo para clientes
     ];
 
     /**
@@ -52,35 +53,25 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed', // Esto encripta la contraseña automático
     ];
-    // ==========================================
-    // RELACIONES (Pega esto antes del último "}")
-    // ==========================================
 
-    // 1. Relación con Suscripciones
-    // Permite hacer: $user->subscriptions (Ver historial de pagos/planes)
-    public function subscriptions()
+    //Si soy cliente, tengo un solo entrenador
+    public function trainer()
     {
-        return $this->hasMany(Subscription::class);
+        return $this->belongsTo(User::class, 'assigned_trainer_id');
     }
 
-    // 2. Relación con Rutinas Asignadas
-    // Permite hacer: $user->assignedRoutines (Ver qué le toca entrenar)
-    public function assignedRoutines()
+    // Si soy entrenador, tengo muchos clientes
+    public function client()
     {
-        return $this->hasMany(AssignedRoutine::class);
+        return $this->hasMany(User::class, 'assigned_trainer_id');
     }
-
-    // 3. Relación con Historial de Entrenamiento
-    // Permite hacer: $user->workoutLogs (Ver su progreso en el gym)
-    public function workoutLogs()
-    {
-        return $this->hasMany(WorkoutLog::class);
+    
+    // Relación: Un entrenador puede tener muchos planes
+    public function plans(){
+        return $this->hasMany(Plan::class, 'trainer_id');
     }
-
-    // 4. Relación con Dietas Asignadas
-    // Permite hacer: $user->assignedDiets (Ver qué debe comer)
-    public function assignedDiets()
-    {
-        return $this->hasMany(AssignedDiet::class);
+     
+    public function subscription(){
+        return $this->hasOne(Subscription::class, 'user_id');
     }
 }

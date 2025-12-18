@@ -16,16 +16,15 @@ return new class extends Migration
 
             $table->foreignId('user_id')
                 ->constrained()
-                ->cascadeOnDelete();
+                ->cascadeOnDelete();//cascadeOnDelete para que si se borra el usuario, se borre la suscripcion
 
             $table->foreignId('plan_id')
                 ->constrained()
-                ->restrictOnDelete();
+                ->restrictOnDelete();//restrictOnDelete para que no se pueda borrar un plan si tiene suscripciones asociadas
 
             $table->date('start_date');
             $table->date('end_date');
-
-            $table->enum('status', ['active', 'expired', 'cancelled']);
+            $table->enum('status', ['active', 'expired', 'cancelled'])->default('active');
             
             $table->timestamps();
         });
