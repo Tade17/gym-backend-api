@@ -14,18 +14,7 @@ return new class extends Migration
         Schema::create('meals', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('diet_plan_id')
-                ->constrained()
-                ->cascadeOnDelete();
-
-            $table->enum('type', [
-                'breakfast',
-                'lunch',
-                'dinner',
-                'snack'
-            ]);
-
-            $table->time('suggested_time');
+            $table->string('name',200);
             $table->text('description');
             $table->timestamps();
         });

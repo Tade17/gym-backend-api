@@ -14,6 +14,8 @@ use App\Http\Controllers\MealController;
 use App\Http\Controllers\AssignedDietController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\TrainerReportController;
+use App\Http\Controllers\DietController;
+
 
 // 1. Rutas Públicas
 //Para el registro y login
@@ -98,9 +100,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/diets/{id}/meals', [MealController::class, 'index']); // Ver comidas de la dieta X
     Route::post('/diets/{id}/meals', [MealController::class, 'store']); // Agregar comida a la dieta X
 
-    // -- ASIGNACIÓN DE DIETAS ---
-    Route::post('/assigned-diets', [AssignedDietController::class, 'store']); // Asignar
-    Route::get('/users/{id}/diet', [AssignedDietController::class, 'showUserDiet']); // Ver dieta del alumno
+    // Gestión de Dietas
+    Route::get('/diets', [DietPlanController::class, 'index']);
+    Route::post('/diets', [DietPlanController::class, 'store']);
+    
+    // Gestión de comidas dentro de la dieta (N:M)
+    Route::post('/diets/{dietId}/meals', [DietPlanController::class, 'addMeal']);
 
     // Gestión del Entrenador
     Route::get('/trainer/students', [AssignedRoutineController::class, 'myStudents']);
