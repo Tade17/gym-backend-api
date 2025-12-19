@@ -23,15 +23,17 @@ return new class extends Migration
             $table->decimal('height', 5, 2)->unsigned();
             $table->text('goals')->nullable();
             $table->enum('role', ['admin', 'trainer', 'client']);
+            $table->enum('gender',['female','male','other']);
             $table->date('birth_date');
             $table->string('profile_photo')->default('default.png');
+
             $table->foreignId('assigned_trainer_id')
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete(); //nullOnDelete para que si se borra el entrenador, no se borre el cliente, solo se ponga null
 
             $table->timestamp('email_verified_at')->nullable();
-            $table->timestamps();
+            $table->timestamps();   
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

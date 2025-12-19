@@ -19,6 +19,7 @@ class AuthController extends Controller
             'last_name' => 'required|string',
             'email' => 'required|string|email|unique:users,email',
             'password' => 'required|string|min:6',
+            'gender'=>'required|in:male,female,other',
             'role' => 'required|in:admin,trainer,client',
             'weight' => 'required|numeric',
             'height' => 'required|numeric',
@@ -31,6 +32,7 @@ class AuthController extends Controller
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
+            'gender'=>$request->gender,
             'password' => Hash::make($request->password), //encriptamos la contraseña
             'role' => $request->role,
             'weight' => $request->weight,

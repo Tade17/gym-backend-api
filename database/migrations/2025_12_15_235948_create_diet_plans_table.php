@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('diet_plans', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100)->unique();
+            $table->string('name', 100);
             $table->text('description')->nullable();
             $table->string('goal', 255);
 
@@ -21,10 +21,6 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
                 
-            $table->foreignId('plan_id')
-                ->constrained('plans')
-                ->nullOnDelete(); //nullOnDelete para que no se borre la dieta si se borra el plan asociado
-
             $table->timestamps();
         });
     }

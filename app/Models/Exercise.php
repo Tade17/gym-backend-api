@@ -22,6 +22,7 @@ class Exercise extends Model
     {
         return $this->belongsToMany(Routine::class, 'routine_exercises')
             ->using(RoutineExercise::class)//indica que use LA TABLA INTERMEDIA ENTRE AMBOS MODELOS
-            ->withPivot('sets', 'reps', 'rest_time');
+            ->withPivot('sets', 'reps', 'rest_time')
+            ->withTimestamps();
     }
 }

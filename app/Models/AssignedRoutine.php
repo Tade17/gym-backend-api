@@ -15,7 +15,8 @@ class AssignedRoutine extends Model
         'status', // 0=pendiente, 1=completado, 2=omitido
         'rating',
         'routine_id',
-        'user_id'
+        'user_id',
+        'trainer_id'
     ];
 
     public function user()

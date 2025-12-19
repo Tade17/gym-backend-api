@@ -14,13 +14,18 @@ return new class extends Migration
         Schema::create('diet_plan_meal', function (Blueprint $table) {
             $table->id();
             $table->time('suggested_time');
-            $table->enum('meal_type', ['breakfast', 'lunch', 'snack', 'dinner']); 
-            $table->date('day_of_week'); 
+            $table->enum('meal_type', ['breakfast', 'lunch', 'snack', 'dinner']);
+            $table->date('day_of_week');
 
-            $table->foreignId('diet_plan_id')->constrained('diet_plans')->cascadeOnDelete();
-            $table->foreignId('meal_id')->constrained('meals')->cascadeOnDelete();
-            $table->timestamps();
-            $table->timestamps();
+            $table->foreignId('diet_plan_id')
+                ->constrained('diet_plans')
+                ->cascadeOnDelete();
+            
+                $table->foreignId('meal_id')
+                ->constrained('meals')
+                ->cascadeOnDelete();
+            
+                $table->timestamps();
         });
     }
 

@@ -15,6 +15,9 @@ use App\Http\Controllers\AssignedDietController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\TrainerReportController;
 use App\Http\Controllers\DietController;
+use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\StudentProgressController;
+use App\Http\Controllers\TrainerDashboardController;
 
 
 // 1. Rutas Públicas
@@ -43,8 +46,6 @@ Route::get('/user', function (Request $request) {
 
 //Rutas para planes de entrenamiento
 // Rutas públicas 
-Route::get('/plans', [PlanController::class, 'index']);
-Route::get('/plans/{id}', [PlanController::class, 'showById']);
 
 // Rutas públicas de Ejercicios
 Route::get('/exercises', [ExerciseController::class, 'index']);
@@ -56,6 +57,9 @@ Route::get('/exercises/{id}', [ExerciseController::class, 'show']);
 // Rutas Protegidas (Necesitas Token para Crear/Editar/Borrar)
 Route::middleware('auth:sanctum')->group(function () {
     // PLANES
+
+    Route::get('/plans', [PlanController::class, 'index']);
+    Route::get('/plans/{id}', [PlanController::class, 'showById']);
     Route::post('/plans', [PlanController::class, 'store']);
     Route::put('/plans/{id}', [PlanController::class, 'update']);
     Route::delete('/plans/{id}', [PlanController::class, 'destroy']);
@@ -103,7 +107,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Gestión de Dietas
     Route::get('/diets', [DietPlanController::class, 'index']);
     Route::post('/diets', [DietPlanController::class, 'store']);
-    
+
     // Gestión de comidas dentro de la dieta (N:M)
     Route::post('/diets/{dietId}/meals', [DietPlanController::class, 'addMeal']);
 
@@ -111,8 +115,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/trainer/students', [AssignedRoutineController::class, 'myStudents']);
     Route::get('/trainer/my-plans', [AssignedRoutineController::class, 'myPlans']);
     Route::get('/trainer/my-routines', [AssignedRoutineController::class, 'myRoutines']);
-    Route::post('/trainer/assign-routine', [AssignedRoutineController::class, 'assignToStudent']);
-    Route::post('/trainer/mass-assign', [AssignedRoutineController::class, 'massAssign']);
+    //Route::post('/trainer/assign-routine', [AssignedRoutineController::class, 'assignToStudent']);
+    //Route::post('/trainer/mass-assign', [AssignedRoutineController::class, 'massAssign']);
+
+    // --- ASIGNACIONES MASIVAS ---
+    Route::post('/assignments/mass-routine', [AssignmentController::class, 'massAssignRoutine']);
+    Route::post('/assignments/mass-diet', [AssignmentController::class, 'massAssignDiet']);
+
+    // --- ASIGNACIONES INDIVIDUALES ---
+    Route::post('/assignments/individual-routine', [AssignmentController::class, 'assignRoutineToUser']);
+    Route::post('/assignments/individual-diet', [AssignmentController::class, 'assignDietToUser']);
 
     // --- RUTAS DEL ALUMNO ---
     Route::get('/my-daily-routine', [ClientController::class, 'todayRoutine']);
@@ -123,4 +135,19 @@ Route::middleware('auth:sanctum')->group(function () {
     // --- REPORTES PARA EL ENTRENADOR ---
     Route::get('/trainer/recent-activity', [TrainerReportController::class, 'recentActivity']);
     Route::get('/trainer/student-progress/{studentId}', [TrainerReportController::class, 'studentProgress']);
+});
+
+
+
+
+// Rutas para el Alumno (Móvil - Kotlin)
+Route::middleware('auth:sanctum')->prefix('student')->group(function () {
+    Route::post('/log-exercise', [StudentProgressController::class, 'logExercise']);
+    Route::post('/complete-routine/{id}', [StudentProgressController::class, 'completeRoutine']);
+});
+
+// Rutas para el Entrenador (Web - React)
+Route::middleware('auth:sanctum')->prefix('trainer')->group(function () {
+    Route::get('/dashboard/compliance', [TrainerDashboardController::class, 'dailyCompliance']);
+    Route::get('/dashboard/alerts', [TrainerDashboardController::class, 'inactivityAlerts']);
 });

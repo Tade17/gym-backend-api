@@ -60,5 +60,15 @@ class WorkoutSeeder extends Seeder
                 $ex3->id => ['sets' => 4, 'reps' => 12, 'rest_time' => 45],
             ]);
         }
+        // Al final de tu WorkoutSeeder.php, agrega esto:
+        $wilson = User::where('email', 'wilson@test.com')->first();
+        if ($wilson && isset($routine)) {
+            \App\Models\AssignedRoutine::create([
+                'user_id' => $wilson->id,
+                'routine_id' => $routine->id,
+                'assigned_date' => now()->format('Y-m-d'),
+                'status' => 0
+            ]);
+        }
     }
 }

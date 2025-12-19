@@ -3,15 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
 class DietPlan extends Model
 {
     protected $fillable = [
         'name',
         'description',
         'goal',
-        'trainer_id',
-        'plan_id'
+        'trainer_id'
     ];
 
     public function trainer()

@@ -23,6 +23,7 @@ class User extends Authenticatable
     protected $fillable = [
         'first_name',
         'last_name',
+        'gender',
         'email',
         'password',
         'weight',
@@ -31,7 +32,7 @@ class User extends Authenticatable
         'role',          // 'admin', 'trainer', 'client'
         'birth_date',
         'profile_photo',
-        'assigned_trainer_id'//solo para clientes
+        'assigned_trainer_id' //solo para clientes
     ];
 
     /**
@@ -65,13 +66,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(User::class, 'assigned_trainer_id');
     }
-    
+
     // Relación: Un entrenador puede tener muchos planes
-    public function plans(){
+    public function plans()
+    {
         return $this->hasMany(Plan::class, 'trainer_id');
     }
-     
-    public function subscription(){
-        return $this->hasOne(Subscription::class, 'user_id');
+
+    // RELACIÓN QUE FALTA: Un usuario tiene muchas suscripciones
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    // RELACIÓN: Un usuario tiene muchas rutinas asignadas
+    public function assignedRoutines()
+    {
+        return $this->hasMany(AssignedRoutine::class);
+    }
+
+    // RELACIÓN: Un usuario tiene muchas dietas asignadas
+    public function assignedDiets()
+    {
+        return $this->hasMany(AssignedDiet::class);
     }
 }

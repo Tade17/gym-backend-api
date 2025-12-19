@@ -29,7 +29,7 @@ class SubscriptionController extends Controller
 
         //validamos si el usuario ya tiene una suscripcion activa
         $existingSubscription = Subscription::where('user_id', $user->id)
-            ->where('status', 'active')
+            ->where('status', 1)
             ->first();
         if ($existingSubscription) {
             return response()->json(['message' => 'Ya tienes una suscripción activa.'], 400);
@@ -39,14 +39,14 @@ class SubscriptionController extends Controller
         if ($user->role !== 'client') {
             return response()->json(['message' => 'Solo los clientes pueden suscribirse a un plan.'], 403);
         }
-        
+
         // 2. Creamos la suscripción
         $subscription = Subscription::create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'start_date' => $startDate->format('Y-m-d'),
             'end_date' => $endDate->format('Y-m-d'),
-            'status' => 'active',
+            'status' => 1,
         ]);
 
         // 3. ¡VITAL! Asignamos al entrenador del plan como el entrenador del usuario

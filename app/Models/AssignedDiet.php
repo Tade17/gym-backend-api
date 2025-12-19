@@ -10,7 +10,8 @@ class AssignedDiet extends Model
         'start_date',
         'end_date',
         'diet_plan_id',
-        'user_id'
+        'user_id',
+        'trainer_id'
     ];
 
     public function user()

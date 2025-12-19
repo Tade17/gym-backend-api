@@ -15,18 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('name', 150);
             $table->text('description')->nullable();
-            $table->enum('level', ['beginner', 'intermediate', 'advanced', 'elite']);
+            $table->enum('level', ['beginner', 'intermediate', 'advanced']);
+            $table->integer('estimated_duration')->unsigned()->nullable(); // minutos
 
             $table->foreignId('trainer_id')
                 ->constrained('users')
                 ->cascadeOnDelete(); //cascadeOnDelete para eliminar rutinas si se elimina el entrenador
 
-            $table->foreignId('plan_id')
-                ->nullable()
-                ->constrained('plans')
-                ->nullOnDelete(); // Si se elimina el plan, establecer plan_id a null de tal manera que las rutinas no se eliminen
-
-            $table->integer('estimated_duration')->unsigned(); // minutos
             $table->timestamps();
         });
     }

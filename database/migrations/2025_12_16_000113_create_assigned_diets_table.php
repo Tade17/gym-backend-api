@@ -18,12 +18,18 @@ return new class extends Migration
             $table->date('end_date')->nullable();
 
             $table->foreignId('user_id')
-                ->constrained()
+                ->constrained('users')
                 ->cascadeOnDelete();
 
             $table->foreignId('diet_plan_id')
-                ->constrained()
+                ->constrained('diet_plans')
                 ->cascadeOnDelete();
+
+            //El entrenador que asignó la dieta (Útil para RF-09)
+            $table->foreignId('trainer_id')
+            ->nullable()
+            ->constrained('users')
+            ->nullOnDelete();
             $table->timestamps();
         });
     }
