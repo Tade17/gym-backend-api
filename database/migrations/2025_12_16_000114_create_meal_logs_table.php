@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('meal_logs', function (Blueprint $table) {
             $table->id();
+            $table->string('photo_url')->nullable();
+            $table->text('notes')->nullable();
 
             $table->foreignId('meal_id')
                 ->constrained()
@@ -21,9 +23,6 @@ return new class extends Migration
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
-
-            $table->string('photo_url')->nullable();
-            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }

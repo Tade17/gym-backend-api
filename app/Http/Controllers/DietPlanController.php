@@ -9,59 +9,39 @@ use Illuminate\Support\Facades\Auth;
 
 class DietPlanController extends Controller
 {
-    // GET: Ver MIS dietas (las que yo creé como entrenador)
+    // Ver mis planes de dieta
     public function index()
     {
-        // Obtener el usuario autenticado
-        $user = Auth::user();
-
-        // Si soy admin, veo todas. Si soy entrenador, veo solo las mías.
-        $query = DietPlan::query();
-
-        //
-        if ($user->role !== 'admin') {
-            $query->where('trainer_id', $user->id);
-        }
-
-        return response()->json($query->get(), 200);
+        return response()->json(DietPlan::where('trainer_id', Auth::id())->get());
     }
 
-    // POST: Crear nueva dieta
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string',
-            'description' => 'nullable|string',
-            'goal' => 'required|in:lose_weight,maintain,gain_muscle'
+            'goal' => 'required|string',
+            'plan_id' => 'nullable|exists:plans,id'
         ]);
-        //Antes de crear la dieta debemos validar que la dieta se cree con el ID del entrenador autenticado 
-        if (Auth::user()->role !== 'trainer') {
-            return response()->json(['message' => 'Solo los entrenadores pueden crear planes de dieta'], 403);
-        }
 
         $diet = DietPlan::create([
             'name' => $request->name,
             'description' => $request->description,
             'goal' => $request->goal,
-            'trainer_id' => Auth::id() // <--- ¡AQUÍ ESTÁ LA MAGIA! Se guarda con TU firma(osea el id del entrenador).
+            'trainer_id' => Auth::id(),
+            'plan_id' => $request->plan_id
         ]);
 
-        return response()->json([
-            'message' => 'Plan de dieta creado',
-            'data' => $diet
-        ], 201);
+        return response()->json($diet, 201);
     }
 
-    // GET: Ver una dieta específica
     public function show($id)
     {
-        $diet = DietPlan::with('trainer')->find($id); // Traemos datos del creador
+        $diet = DietPlan::with('trainer')->find($id); //ws
 
         if (!$diet) {
             return response()->json(['message' => 'Dieta no encontrada'], 404);
         }
 
-        // Seguridad: Verificar si tengo permiso para verla (opcional, por ahora lo dejamos abierto)
         if ($diet->trainer_id !== Auth::id() && Auth::user()->role !== 'admin') {
             return response()->json(['message' => 'No tienes permiso para ver esta dieta'], 403);
         }
@@ -69,6 +49,26 @@ class DietPlanController extends Controller
         return response()->json($diet, 200);
     }
 
+    // ASIGNAR COMIDA A DIETA (Lógica Pivot)
+    public function addMeal(Request $request, $dietId)
+    {
+        $diet = DietPlan::where('id', $dietId)->where('trainer_id', Auth::id())->firstOrFail();
+
+        $request->validate([
+            'meal_id' => 'required|exists:meals,id',
+            'suggested_time' => 'required',
+            'meal_type' => 'required|in:breakfast,brunch,lunch,snack,dinner',
+            'day_of_week' => 'required|date'
+        ]);
+
+        $diet->meals()->attach($request->meal_id, [
+            'suggested_time' => $request->suggested_time,
+            'meal_type' => $request->meal_type,
+            'day_of_week' => $request->day_of_week
+        ]);
+
+        return response()->json(['message' => 'Comida agregada a la dieta']);
+    }
     // DELETE: Borrar dieta
     public function destroy($id)
     {

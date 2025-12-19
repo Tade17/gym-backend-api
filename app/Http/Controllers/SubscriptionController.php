@@ -27,6 +27,19 @@ class SubscriptionController extends Controller
         $startDate = Carbon::now();
         $endDate = $startDate->copy()->addDays($plan->duration_days);
 
+        //validamos si el usuario ya tiene una suscripcion activa
+        $existingSubscription = Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->first();
+        if ($existingSubscription) {
+            return response()->json(['message' => 'Ya tienes una suscripción activa.'], 400);
+        }
+
+        //validamos si el usuario es un cliente
+        if ($user->role !== 'client') {
+            return response()->json(['message' => 'Solo los clientes pueden suscribirse a un plan.'], 403);
+        }
+        
         // 2. Creamos la suscripción
         $subscription = Subscription::create([
             'user_id' => $user->id,

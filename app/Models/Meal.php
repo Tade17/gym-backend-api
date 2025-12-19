@@ -2,22 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Meal extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'name',
-        'description',
-        'suggested_time',
-        'diet_plan_id'
+        'description'
     ];
 
-    public function dietPlan()
+    public function dietPlans()
     {
-        return $this->belongsTo(DietPlan::class);
+        return $this->belongsToMany(DietPlan::class, 'diet_plan_meal')
+            ->using(DietPlanMeal::class)
+            ->withPivot('suggested_time', 'meal_type', 'day_of_week')
+            ->withTimestamps();
     }
 }

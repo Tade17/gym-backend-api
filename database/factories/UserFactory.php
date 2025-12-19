@@ -27,7 +27,7 @@ class UserFactory extends Factory
             //aca tenemos que agregar los campos de nuestra tabla users que hemos modificado
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
-            
+
             'email' => fake()->unique()->safeEmail(),
             'password' => static::$password ??= Hash::make('password'),
 
@@ -48,8 +48,22 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+    public function trainer(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'role' => 'trainer',
+        ]);
+    }
+
+    // Estado para obligar a que sea Cliente
+    public function client(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'role' => 'client',
         ]);
     }
 }

@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('assigned_diets', function (Blueprint $table) {
             $table->id();
 
+            $table->dateTime('start_date');
+            $table->date('end_date')->nullable();
+
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
@@ -21,9 +24,6 @@ return new class extends Migration
             $table->foreignId('diet_plan_id')
                 ->constrained()
                 ->cascadeOnDelete();
-
-            $table->date('start_date')->useCurrent();
-            $table->date('end_date')->nullable();
             $table->timestamps();
         });
     }

@@ -15,10 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('name', 100)->unique();
             $table->text('description')->nullable();
+            $table->string('goal', 255);
 
-            // Opcional pero MUY útil a futuro
-            $table->enum('goal', ['lose_weight', 'maintain', 'gain_muscle'])->nullable();
-            
+            $table->foreignId('trainer_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+                
+            $table->foreignId('plan_id')
+                ->constrained('plans')
+                ->nullOnDelete(); //nullOnDelete para que no se borre la dieta si se borra el plan asociado
+
             $table->timestamps();
         });
     }

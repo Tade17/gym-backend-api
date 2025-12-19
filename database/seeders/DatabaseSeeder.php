@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        // 1. Crear un usuario ADMIN real (para que tú puedas hacer login)
+        // 1. Crear un usuario ADMIN real 
         User::factory()->create([
             'first_name' => 'Tadeo',
             'last_name' => 'Mendoza Gastulo',
@@ -29,11 +29,31 @@ class DatabaseSeeder extends Seeder
             'height' => 1.70,
             'birth_date' => '2004-05-17'
         ]);
-        
-        // 2. Crear 10 usuarios "Dummy" (falsos) aleatorios
-        User::factory(10)->create();
 
-        // 3. Crear 5 Planes falsos usando la fábrica que hicimos
-        Plan::factory(5)->create();
+        // 2. Crear 10 usuarios "Dummy" (falsos) aleatorios
+        User::factory(10)->trainer()->count(3)->create();
+        User::factory(10)->client()->count(7)->create();
+
+        // --- AQUÍ VA EL NUEVO PASO 3 (Lógica para todos los entrenadores) ---
+        $trainers = User::where('role', 'trainer')->get();
+
+        foreach ($trainers as $trainer) {
+            foreach (['basic', 'pro', 'personalized'] as $type) {
+                Plan::create([
+                    'type' => $type,
+                    'description' => "Plan $type ofrecido por {$trainer->first_name}.",
+                    'price' => ($type == 'basic') ? 50 : (($type == 'pro') ? 100 : 200),
+                    'duration_days' => 30,
+                    'trainer_id' => $trainer->id,
+                    'is_active' => true,
+                ]);
+            }
+        }
+
+        //
+        $this->call([
+            TrainerWithPlansSeeder::class,
+            WorkoutSeeder::class
+        ]);
     }
 }
