@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->time('suggested_time');
             $table->enum('meal_type', ['breakfast', 'lunch', 'snack', 'dinner']);
-            $table->date('day_of_week');
+            $table->enum('day_of_week',['monday','tuesday','wednesday','thursday','friday','saturday','sunday']);
 
             $table->foreignId('diet_plan_id')
                 ->constrained('diet_plans')

@@ -11,21 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('workout_logs', function (Blueprint $table) {
+        Schema::create('workout_exercise_logs', function (Blueprint $table) {
             $table->id();
-            $table->date('workout_date');
-            $table->integer('duration')->unsigned()->nullable(); // minutos totales
-            $table->boolean('is_completed')->default(false); // RF-18
-            $table->text('notes')->nullable();
+            $table->integer('actual_sets')->unsigned();
+            $table->integer('actual_reps')->unsigned();
+            $table->decimal('weight_used', 5, 2)->unsigned()->nullable();
 
-            $table->foreignId('assigned_routine_id')
+            $table->foreignId('workout_log_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->foreignId('user_id')
+            $table->foreignId('exercise_id')
                 ->constrained()
                 ->cascadeOnDelete();
-
             $table->timestamps();
         });
     }
@@ -35,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('workout_logs');
+        Schema::dropIfExists('workout_exercise_logs');
     }
 };

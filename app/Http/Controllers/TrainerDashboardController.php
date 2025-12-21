@@ -10,55 +10,45 @@ use Illuminate\Support\Facades\Auth;
 
 class TrainerDashboardController extends Controller
 {
-    /**
-     * RF-13: Quiénes cumplieron hoy y quiénes faltaron
-     */
-    public function dailyCompliance()
+    public function getDailyStats()
     {
-        $today = Carbon::today()->format('Y-m-d');
         $trainerId = Auth::id();
+        $today = Carbon::today();
 
-        // Alumnos que tenían rutina hoy y su estado
-        $compliance = AssignedRoutine::with('user:id,first_name,last_name')
-            ->where('trainer_id', $trainerId)
+        // Alumnos que completaron su rutina hoy
+        $completedToday = AssignedRoutine::where('trainer_id', $trainerId)
             ->where('assigned_date', $today)
+            ->where('status', 1)
+            ->with('user')
+            ->get();
+
+        // Alumnos que NO han entrenado hoy
+        $pendingToday = AssignedRoutine::where('trainer_id', $trainerId)
+            ->where('assigned_date', $today)
+            ->where('status', 0)
+            ->with('user')
             ->get();
 
         return response()->json([
-            'date' => $today,
-            'total_assigned' => $compliance->count(),
-            'completed' => $compliance->where('status', 1)->count(),
-            'pending' => $compliance->where('status', 0)->count(),
-            'details' => $compliance
+            'completadas' => $completedToday,
+            'pendientes' => $pendingToday,
+            'total_completadas' => $completedToday->count()
         ]);
     }
 
-    /**
-     * RF-13 y RF-21: Alerta de alumnos que faltaron 3 días seguidos
-     */
-    public function inactivityAlerts()
+    public function getAbsentees()
     {
         $trainerId = Auth::id();
-        $threeDaysAgo = Carbon::today()->subDays(3)->format('Y-m-d');
+        // Lógica simple: Alumnos que tienen rutinas pendientes de hace más de 3 días
+        $threeDaysAgo = Carbon::now()->subDays(3);
 
-        // Buscamos alumnos del trainer que tengan rutinas sin completar en los últimos 3 días
-        $inactiveStudents = User::where('assigned_trainer_id', $trainerId)
-            ->whereHas('assignedRoutines', function ($query) use ($threeDaysAgo) {
-                $query->where('assigned_date', '>=', $threeDaysAgo)
-                    ->where('status', 0); // Pendientes
-            })
-            ->withCount(['assignedRoutines' => function ($query) use ($threeDaysAgo) {
-                $query->where('assigned_date', '>=', $threeDaysAgo)
-                    ->where('status', 0);
-            }])
+        $absentees = AssignedRoutine::where('trainer_id', $trainerId)
+            ->where('status', 0)
+            ->where('assigned_date', '<=', $threeDaysAgo)
+            ->with('user')
             ->get()
-            ->filter(function ($user) {
-                return $user->assigned_routines_count >= 3; // Faltaron 3 sesiones
-            });
+            ->unique('user_id');
 
-        return response()->json([
-            'alert' => 'Usuarios que requieren notificación PUSH (RF-21)',
-            'students' => $inactiveStudents->values()
-        ]);
+        return response()->json($absentees);
     }
 }

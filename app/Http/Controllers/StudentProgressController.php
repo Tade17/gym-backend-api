@@ -35,24 +35,5 @@ class StudentProgressController extends Controller
         return response()->json(['message' => 'Progreso guardado', 'log' => $log]);
     }
 
-    /**
-     * RF-18 y RF-23: Check-in y Calificación en estrellas
-     */
-    public function completeRoutine(Request $request, $id)
-    {
-        $request->validate([
-            'rating' => 'required|integer|min:1|max:5', // Calificación de 5 estrellas
-        ]);
-
-        $assignment = AssignedRoutine::where('id', $id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
-
-        $assignment->update([
-            'status' => 1, // 1 = Completada
-            'rating' => $request->rating,
-        ]);
-
-        return response()->json(['message' => '¡Rutina completada! Buen trabajo.']);
-    }
+    
 }

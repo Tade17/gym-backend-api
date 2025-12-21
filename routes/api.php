@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssignedDietController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PlanController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\AssignedRoutineController;
 use App\Http\Controllers\DietPlanController;
 use App\Http\Controllers\DietPlanMealController;
 use App\Http\Controllers\MealController;
+use App\Http\Controllers\MealLogController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\TrainerReportController;
 use App\Http\Controllers\AssignmentController;
@@ -105,13 +107,12 @@ Route::middleware('auth:sanctum')->group(function () {
     //Quitar comida de una comida en especifica
     Route::delete('/diet-plans/{dietPlanId}/meals/{mealId}', [DietPlanMealController::class, 'destroy']);
 
+    // para ver las dietas como usuario
+    Route::get('/my-diet', [AssignedDietController::class, 'showUserDiet']);
+    // --- NUTRICIÓN (RF-20) ---
+    // Subir foto de comida y marcar como consumida
+    Route::post('/my-meals/log', [MealLogController::class, 'store']);
 
-
-
-    // --- AGENDA DE ENTRENAMIENTO ---
-    Route::post('/schedule', [AssignedRoutineController::class, 'store']); // Agendar
-    Route::get('/schedule', [AssignedRoutineController::class, 'index']);  // Ver agenda
-    Route::put('/schedule/{id}/complete', [AssignedRoutineController::class, 'complete']); // Marcar listo
 
     // Gestión del Entrenador
     Route::get('/trainer/my-students', [AssignedRoutineController::class, 'myStudents']);
@@ -126,13 +127,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/assignments/individual-routine', [AssignmentController::class, 'assignRoutineToUser']);
     Route::post('/assignments/individual-diet', [AssignmentController::class, 'assignDietToUser']);
 
+
+
     // --- RUTAS DEL ALUMNO ---
     Route::get('/my-daily-routine', [ClientController::class, 'todayRoutine']);
-    Route::post('/log-workout', [ClientController::class, 'logWorkout']);
+    //(RF-17, RF-18, RF-23) ---
+    // Marcar lista la rutina y dar estrellas
+    Route::put('/schedule/{id}/complete', [AssignedRoutineController::class, 'complete']);
 
-    // --- REPORTES PARA EL ENTRENADOR ---
-    Route::get('/trainer/recent-activity', [TrainerReportController::class, 'recentActivity']);
-    Route::get('/trainer/student-progress/{studentId}', [TrainerReportController::class, 'studentProgress']);
+    // Registrar pesos/repeticiones de CADA ejercicio (Progreso)
+    Route::post('/schedule/exercise-log', [AssignedRoutineController::class, 'logExerciseProgress']);
+
+
+    // --- DASHBOARD DEL ENTRENADOR (RF-13) ---
+    Route::prefix('trainer/dashboard')->group(function () {
+        Route::get('/stats', [TrainerDashboardController::class, 'getDailyStats']);
+        Route::get('/absentees', [TrainerDashboardController::class, 'getAbsentees']);
+    });
 });
 
 

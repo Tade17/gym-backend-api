@@ -13,16 +13,25 @@ return new class extends Migration
     {
         Schema::create('meal_logs', function (Blueprint $table) {
             $table->id();
+            $table->date('consumed_date');
+            $table->boolean('is_completed')->default(true);
             $table->string('photo_url')->nullable();
             $table->text('notes')->nullable();
 
-            $table->foreignId('meal_id')
-                ->constrained()
+            // Relación REAL con el plan asignado
+            $table->foreignId('assigned_diet_id')
+                ->constrained('assigned_diets')
                 ->cascadeOnDelete();
 
+            // Relación con la comida específica del plan
+            $table->foreignId('diet_plan_meal_id')
+                ->constrained('diet_plan_meal')
+                ->cascadeOnDelete();
+                
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
+
             $table->timestamps();
         });
     }

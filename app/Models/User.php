@@ -72,11 +72,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(Plan::class, 'trainer_id');
     }
+    public function routines()
+    {
+        return $this->hasMany(Routine::class, 'trainer_id');
+    }
 
     // RELACIÓN QUE FALTA: Un usuario tiene muchas suscripciones
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
+    }
+    public function dietPlans()
+    {
+        return $this->hasMany(DietPlan::class, 'trainer_id');
     }
 
     // RELACIÓN: Un usuario tiene muchas rutinas asignadas
@@ -89,5 +97,23 @@ class User extends Authenticatable
     public function assignedDiets()
     {
         return $this->hasMany(AssignedDiet::class);
+    }
+
+    public function workoutLogs()
+    {
+        return $this->hasManyThrough(
+            WorkoutLog::class,
+            AssignedRoutine::class,
+            'user_id',              // FK en assigned_routines
+            'assigned_routine_id',  // FK en workout_logs
+            'id',                   // PK en users
+            'id'                    // PK en assigned_routines
+        );
+    }
+
+
+    public function mealLogs()
+    {
+        return $this->hasMany(MealLog::class);
     }
 }

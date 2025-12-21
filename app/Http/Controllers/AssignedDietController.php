@@ -11,10 +11,10 @@ class AssignedDietController extends Controller
 {
 
     // GET: Ver la dieta actual de un usuario
-    public function showUserDiet($userId)
+    public function showUserDiet()
     {
         // Buscamos la asignación más reciente que no haya vencido
-        $assignment = AssignedDiet::where('user_id', $userId)
+        $assignment = AssignedDiet::where('user_id', Auth::id())
             ->with(['dietPlan.trainer', 'dietPlan']) // Traemos info del plan y quien lo creó
             ->orderBy('start_date', 'desc')
             ->first();

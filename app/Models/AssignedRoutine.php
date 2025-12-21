@@ -11,12 +11,12 @@ class AssignedRoutine extends Model
 
 
     protected $fillable = [
+        'user_id',
+        'routine_id',
+        'trainer_id',
         'assigned_date',
         'status', // 0=pendiente, 1=completado, 2=omitido
-        'rating',
-        'routine_id',
-        'user_id',
-        'trainer_id'
+        'rating'
     ];
 
     public function user()
@@ -28,8 +28,12 @@ class AssignedRoutine extends Model
     {
         return $this->belongsTo(Routine::class);
     }
+    public function trainer()
+    {
+        return $this->belongsTo(User::class, 'trainer_id');
+    }
 
-    public function logs()
+    public function workoutLogs()
     {
         return $this->hasMany(WorkoutLog::class);
     }

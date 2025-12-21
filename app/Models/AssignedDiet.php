@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class AssignedDiet extends Model
 {
     protected $fillable = [
-        'start_date',
-        'end_date',
-        'diet_plan_id',
         'user_id',
-        'trainer_id'
+        'diet_plan_id',
+        'trainer_id',
+        'start_date',
+        'end_date'
     ];
+    protected $dates = ['start_date', 'end_date'];
 
     public function user()
     {
@@ -22,5 +23,9 @@ class AssignedDiet extends Model
     public function dietPlan()
     {
         return $this->belongsTo(DietPlan::class);
+    }
+    public function trainer()
+    {
+        return $this->belongsTo(User::class, 'trainer_id');
     }
 }
