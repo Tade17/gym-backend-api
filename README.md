@@ -37,12 +37,12 @@ Sigue estos pasos para poner a correr el proyecto:
 git clone [https://github.com/Tade17/gym-backend-api.git](https://github.com/Tade17/gym-backend-api.git)
 cd gym-backend-api
 ```
-# 2. Instalar dependencias #
+###  2. Instalar dependencias 
 ```bash 
 composer install
  ```
 
-# 3. Configurar el entorno #
+###  3. Configurar el entorno 
 Copia el archivo de ejemplo y configura tus credenciales de base de datos
 
 ```bash 
@@ -57,17 +57,17 @@ DB_DATABASE=gym_app_db_v2
 DB_USERNAME=tu_usuario
 DB_PASSWORD=tu_contraseña
 
-# 4 . Generar la App Key y Enlace de Storage #
+### 4 . Generar la App Key y Enlace de Storage 
 ```bash 
 php artisan key:generate
 php artisan storage:link
 ```
-# 5. Ejecutar Migraciones # 
+### 5. Ejecutar Migraciones 
 ```bash 
 php artisan migrate 
 ```
 
-#  6. Iniciar Servidor # 
+###   6. Iniciar Servidor  
 ```bash 
 php artisan serve
 ```
@@ -77,7 +77,7 @@ El backend estará disponible en: http://localhost:8000
 
 
 
- # 🧹 Tareas Programadas
+###  🧹 Tareas Programadas
  Para no saturar el servidor con fotos subidas 
 ```bash 
 php artisan app:clean-old-meal-photos
