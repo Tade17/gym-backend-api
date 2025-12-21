@@ -3,45 +3,82 @@
 namespace App\Http\Controllers;
 
 use App\Models\Meal;
-use App\Models\DietPlan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class MealController extends Controller
 {
-    // POST: Agregar una comida a un plan de dieta
-    // URL: /api/diet-plans/{id}/meals
-    public function store(Request $request, $dietPlanId)
+    public function index()
     {
-        // 1. Verificamos que el plan exista y sea mío (si soy entrenador)
-        $dietPlan = DietPlan::where('id', $dietPlanId)
-            ->where('trainer_id', Auth::id())
-            ->first();
+        $meals = Meal::all();
+        return response()->json($meals, 200);
+    }
 
-        if (!$dietPlan) {
-            return response()->json(['message' => 'Plan de dieta no encontrado o acceso denegado'], 404);
-        }
-
+    // POST /api/meals
+    public function store(Request $request)
+    {
         $request->validate([
-            'type' => 'required|in:breakfast,lunch,dinner,snack',
-            'suggested_time' => 'required', // HH:MM:SS
-            'description' => 'required|string'
+            'name' => 'required|string|unique:meals,name',
+            'description' => 'nullable|string',
         ]);
 
         $meal = Meal::create([
-            'diet_plan_id' => $dietPlanId,
-            'type' => $request->type,
-            'suggested_time' => $request->suggested_time,
-            'description' => $request->description
+            'name' => $request->name,
+            'description' => $request->description,
         ]);
 
-        return response()->json(['message' => 'Comida agregada', 'data' => $meal], 201);
+        return response()->json([
+            'message' => 'Meal creada con éxito',
+            'data' => $meal
+        ], 201);
     }
 
-    // GET: Ver las comidas de un plan
-    public function index($dietPlanId)
+    // GET /api/meals/{id}
+    public function show($id)
     {
-        $meals = Meal::where('diet_plan_id', $dietPlanId)->orderBy('suggested_time')->get();
-        return response()->json($meals, 200);
+        $meal = Meal::find($id);
+
+        if (!$meal) {
+            return response()->json(['message' => 'Meal no encontrada'], 404);
+        }
+
+        return response()->json($meal, 200);
+    }
+
+    // PUT /api/meals/{id}
+    public function update(Request $request, $id)
+    {
+        $meal = Meal::find($id);
+
+        if (!$meal) {
+            return response()->json(['message' => 'Meal no encontrada'], 404);
+        }
+
+        $request->validate([
+            'name' => 'sometimes|string|unique:meals,name,' . $id,
+            'description' => 'nullable|string',
+        ]);
+
+        $meal->update($request->only(['name', 'description']));
+
+        return response()->json([
+            'message' => 'Meal actualizada',
+            'data' => $meal
+        ], 200);
+    }
+
+    // DELETE /api/meals/{id}
+    public function destroy($id)
+    {
+        $meal = Meal::find($id);
+
+        if (!$meal) {
+            return response()->json(['message' => 'Meal no encontrada'], 404);
+        }
+
+        $meal->delete();
+
+        return response()->json([
+            'message' => 'Meal eliminada'
+        ], 200);
     }
 }

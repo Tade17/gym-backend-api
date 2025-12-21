@@ -17,6 +17,20 @@ class PlanController extends Controller
         return response()->json($planes, 200);
     }
 
+    //  LISTAR por id (GET /api/plans/{id})
+    public function show($id)
+    {
+        $plan = Plan::where('id', $id)
+            ->where('trainer_id', Auth::id())
+            ->first();
+
+        if (!$plan) {
+            return response()->json(['message' => 'Plan no encontrado o no tienes permiso'], 404);
+        }
+
+        return response()->json($plan, 200);
+    }
+
     // POST: Crear un nuevo plan
     // 2. CREAR uno nuevo (POST /api/plans)
     public function store(Request $request)
@@ -33,6 +47,28 @@ class PlanController extends Controller
             'description' => 'required|string',
             'is_active' => 'sometimes|boolean',
         ]);
+
+        // Límite de 3 planes ---
+        $trainerId = Auth::id();
+        $planCount = Plan::where('trainer_id', $trainerId)->count();
+
+        if ($planCount >= 4) {
+            return response()->json([
+                'message' => 'Límite alcanzado. Solo puedes tener un máximo de 3 planes (Basico, Pro y Personalizado).'
+            ], 400);
+        }
+
+        // Validar que no repita el mismo TIPO ---
+        $existsType = Plan::where('trainer_id', $trainerId)
+            ->where('type', $request->type)
+            ->exists();
+
+        if ($existsType) {
+            return response()->json([
+                'message' => "Ya tienes un plan de tipo '{$request->type}' creado."
+            ], 400);
+        }
+        // --------------------------------------------
 
         // Creamos el plan en la BD
         $plan = Plan::create([
@@ -70,6 +106,16 @@ class PlanController extends Controller
             'is_active' => 'sometimes|boolean',
         ]);
 
+        // Validar que no repita el mismo TIPO ---
+        $existsType = Plan::where('trainer_id', Auth::id())
+            ->where('type', $request->type)
+            ->exists();
+
+        if ($existsType) {
+            return response()->json([
+                'message' => "Ya tienes un plan de tipo '{$request->type}' creado."
+            ], 400);
+        }
         //actualizamos el plan 
         $plan->update($request->only([
             'type',
