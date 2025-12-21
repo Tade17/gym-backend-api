@@ -11,13 +11,13 @@ class WorkoutLog extends Model
         'user_id',
         'workout_date',
         'duration',
-        'weight_used',
-        'reps',
-        'notes',
+        'is_completed',
+        'notes'
     ];
 
     protected $casts = [
         'workout_date' => 'date',
+        'is_completed' => 'boolean'
     ];
 
     public function assignedRoutine()
@@ -25,7 +25,7 @@ class WorkoutLog extends Model
         return $this->belongsTo(AssignedRoutine::class);
     }
 
-   
+
     //Acceso indirecto al usuario (muy útil)
     /*public function user()
     {

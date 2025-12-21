@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MealLog;
+use App\Models\AssignedDiet;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,8 +17,16 @@ class MealLogController extends Controller
             'assigned_diet_id'  => 'required|exists:assigned_diets,id',
             'consumed_date'     => 'required|date',
             'photo'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Validación de imagen
+            'notes' => 'nullable|string'
         ]);
+        // Dentro del método store, después de la validación inicial:
+        $assignedDiet = AssignedDiet::where('id', $request->assigned_diet_id)
+            ->where('user_id', Auth::id())
+            ->first();
 
+        if (!$assignedDiet) {
+            return response()->json(['message' => 'Esta asignación de dieta no te pertenece'], 403);
+        }
         $photoPath = null;
         if ($request->hasFile('photo')) {
             // Guarda la foto en storage/app/public/meals
@@ -30,7 +39,8 @@ class MealLogController extends Controller
             'assigned_diet_id'  => $request->assigned_diet_id,
             'consumed_date'     => $request->consumed_date,
             'photo_url'         => $photoPath ? Storage::url($photoPath) : null,
-            'is_completed'      => 1
+            'is_completed'      => 1,
+            'notes' => $request->notes
         ]);
 
         return response()->json([

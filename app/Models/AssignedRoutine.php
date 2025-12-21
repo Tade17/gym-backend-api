@@ -11,12 +11,12 @@ class AssignedRoutine extends Model
 
 
     protected $fillable = [
-        'user_id',
-        'routine_id',
-        'trainer_id',
         'assigned_date',
         'status', // 0=pendiente, 1=completado, 2=omitido
-        'rating'
+        'rating',
+        'routine_id',
+        'user_id',
+        'trainer_id'
     ];
 
     public function user()

@@ -11,9 +11,9 @@ class Plan extends Model
 
     protected $fillable = [
         'type',
+        'description',
         'price',
         'duration_days',
-        'description',
         'is_active',
         'trainer_id'
     ];

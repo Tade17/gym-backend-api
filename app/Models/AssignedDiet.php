@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class AssignedDiet extends Model
 {
     protected $fillable = [
+        'start_date',
+        'end_date',
         'user_id',
         'diet_plan_id',
-        'trainer_id',
-        'start_date',
-        'end_date'
+        'trainer_id'
     ];
     protected $dates = ['start_date', 'end_date'];
 

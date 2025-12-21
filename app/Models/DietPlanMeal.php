@@ -11,7 +11,9 @@ class DietPlanMeal extends Pivot
     protected $fillable = [
         'suggested_time',
         'meal_type',
-        'day_of_week'
+        'day_of_week',
+        'diet_plan_id',
+        'meal_id'
     ];
 
 }

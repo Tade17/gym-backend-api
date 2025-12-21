@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class MealLog extends Model
 {
     protected $fillable = [
-        'user_id',
-        'diet_plan_meal_id',
-        'assigned_diet_id',
         'consumed_date',
+        'is_completed',
         'photo_url',
-        'is_completed'
+        'notes',
+        'assigned_diet_id',
+        'diet_plan_meal_id',
+        'user_id',
     ];
 
     public function user()

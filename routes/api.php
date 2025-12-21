@@ -101,7 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/routines/{routineId}/exercises/{exerciseId}', [RoutineExerciseController::class, 'destroy']);
 
 
-    // Diet-plan-meal (Pivot)
+    // Diet-plan-meal 
     // Agregar comida a una dieta especifica
     Route::post('/diet-plans/{dietPlanId}/meals', [DietPlanMealController::class, 'store']);
     //Quitar comida de una comida en especifica
@@ -131,13 +131,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- RUTAS DEL ALUMNO ---
     Route::get('/my-daily-routine', [ClientController::class, 'todayRoutine']);
+    
+    Route::post('/start-routine', [AssignedRoutineController::class, 'startWorkout']);
+    // Registrar pesos/repeticiones de CADA ejercicio (Progreso)
+    Route::post('/schedule/exercise-log', [AssignedRoutineController::class, 'logExerciseProgress']);
+    
     //(RF-17, RF-18, RF-23) ---
     // Marcar lista la rutina y dar estrellas
     Route::put('/schedule/{id}/complete', [AssignedRoutineController::class, 'complete']);
-
-    // Registrar pesos/repeticiones de CADA ejercicio (Progreso)
-    Route::post('/schedule/exercise-log', [AssignedRoutineController::class, 'logExerciseProgress']);
-
+    
 
     // --- DASHBOARD DEL ENTRENADOR (RF-13) ---
     Route::prefix('trainer/dashboard')->group(function () {
