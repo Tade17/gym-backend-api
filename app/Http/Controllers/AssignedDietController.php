@@ -15,7 +15,7 @@ class AssignedDietController extends Controller
     {
         // Buscamos la asignación más reciente que no haya vencido
         $assignment = AssignedDiet::where('user_id', Auth::id())
-            ->with(['dietPlan.trainer', 'dietPlan']) // Traemos info del plan y quien lo creó
+            ->with(['dietPlan.meals', 'dietPlan']) // Traemos info del plan y quien lo creó
             ->orderBy('start_date', 'desc')
             ->first();
 

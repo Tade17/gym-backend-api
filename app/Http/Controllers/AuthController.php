@@ -19,7 +19,7 @@ class AuthController extends Controller
             'last_name' => 'required|string',
             'email' => 'required|string|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'gender'=>'required|in:male,female,other',
+            'gender' => 'required|in:male,female,other',
             'role' => 'required|in:admin,trainer,client',
             'weight' => 'required|numeric',
             'height' => 'required|numeric',
@@ -32,7 +32,7 @@ class AuthController extends Controller
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'gender'=>$request->gender,
+            'gender' => $request->gender,
             'password' => Hash::make($request->password), //encriptamos la contraseña
             'role' => $request->role,
             'weight' => $request->weight,
@@ -46,37 +46,40 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message'=>'User registered successfully',
-            'user'=>$user,
-            'token'=>$token
-        ],201);
+            'message' => 'User registered successfully',
+            'user' => $user,
+            'token' => $token
+        ], 201);
     }
 
     //2.Login para el usuario
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         //validamos los datos recubudis
         $request->validate([
-            'email'=>'required|email',
-            'password'=>'required',
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
 
         //buscamos al usuario por su email
-        $user=User::where('email',$request->email)->first();
+        $user = User::where('email', $request->email)
+            ->with('subscriptions.plan')
+            ->first();
 
         //verificamos si el usuario existe y la contraseña es correcta
-        if(!$user ||!Hash::check($request->password,$user->password)){
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message'=>'Invalid credentials'
-            ],401);
+                'message' => 'Invalid credentials'
+            ], 401);
         }
 
         //si pasa la verificacion , creamos un token de autenticacion
-        $token=$user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json([
-            'message'=>'Login successful',
-            'user'=>$user,
-            'token'=>$token
-        ],200);
+            'message' => 'Login successful',
+            'user' => $user,
+            'token' => $token
+        ], 200);
     }
     //3.Logout 
     public function logout(Request $request)
@@ -88,6 +91,4 @@ class AuthController extends Controller
             'message' => 'Logged out successfully'
         ], 200);
     }
-
-
 }
