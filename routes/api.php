@@ -13,6 +13,8 @@ use App\Http\Controllers\AssignedRoutineController;
 use App\Http\Controllers\DietPlanController;
 use App\Http\Controllers\DietPlanMealController;
 use App\Http\Controllers\MealController;
+use App\Http\Controllers\FoodController;
+use App\Http\Controllers\MealFoodController;
 use App\Http\Controllers\MealLogController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\TrainerReportController;
@@ -94,6 +96,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/diet-plans/{id}', [DietPlanController::class, 'update']);
     Route::delete('/diet-plans/{id}', [DietPlanController::class, 'destroy']);
 
+    // COMIDAS
+    Route::get('/foods', [FoodController::class, 'index']);
+    Route::get('/foods/{id}', [FoodController::class, 'show']);
+    Route::post('/foods', [FoodController::class, 'store']);
+    Route::put('/foods/{id}', [FoodController::class, 'update']);
+    Route::delete('/foods/{id}', [FoodController::class, 'destroy']);
+
+
     // ROUTINE-EXERCISE (Pivot)
     // Agregar ejercicio a una rutina específica
     Route::post('/routines/{routineId}/exercises', [RoutineExerciseController::class, 'store']);
@@ -107,6 +117,12 @@ Route::middleware('auth:sanctum')->group(function () {
     //Quitar comida de una comida en especifica
     Route::delete('/diet-plans/{dietPlanId}/meals/{mealId}', [DietPlanMealController::class, 'destroy']);
 
+    // meal-food
+    // Agregar un alimento a una comida especifica
+    Route::post('/meals/{mealId}/food', [MealFoodController::class, 'store']);
+    //Quitar un alimento a una comida especifica
+    Route::delete('/meals/{mealId}/food/{foodId}', [MealFoodController::class, 'destroy']);
+    
     // para ver las dietas como usuario
     Route::get('/my-diet', [AssignedDietController::class, 'showUserDiet']);
     // --- NUTRICIÓN (RF-20) ---
@@ -131,15 +147,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- RUTAS DEL ALUMNO ---
     Route::get('/my-daily-routine', [ClientController::class, 'todayRoutine']);
-    
+
     Route::post('/start-routine', [AssignedRoutineController::class, 'startWorkout']);
     // Registrar pesos/repeticiones de CADA ejercicio (Progreso)
     Route::post('/schedule/exercise-log', [AssignedRoutineController::class, 'logExerciseProgress']);
-    
+
     //(RF-17, RF-18, RF-23) ---
     // Marcar lista la rutina y dar estrellas
     Route::put('/schedule/{id}/complete', [AssignedRoutineController::class, 'complete']);
-    
+
 
     // --- DASHBOARD DEL ENTRENADOR (RF-13) ---
     Route::prefix('trainer/dashboard')->group(function () {

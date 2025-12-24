@@ -13,7 +13,7 @@ class DietPlanController extends Controller
     public function index()
     {
         $dietPlans = DietPlan::where('trainer_id', Auth::id())
-            ->with('meals')
+            ->with('meals.food') 
             ->get();
         return response()->json($dietPlans, 200);
     }
@@ -63,7 +63,7 @@ class DietPlanController extends Controller
     {
         $dietPlan = DietPlan::where('id', $id)
             ->where('trainer_id', Auth::id())
-            ->with('meals')
+            ->with('meals.food')
             ->first();
 
         if (!$dietPlan) {

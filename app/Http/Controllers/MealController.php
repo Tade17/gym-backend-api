@@ -9,7 +9,7 @@ class MealController extends Controller
 {
     public function index()
     {
-        $meals = Meal::all();
+        $meals = Meal::with('food')->get();
         return response()->json($meals, 200);
     }
 

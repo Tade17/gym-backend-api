@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('meal_logs', function (Blueprint $table) {
             $table->id();
-            $table->date('consumed_date');
+            $table->dateTime('consumed_date');
             $table->boolean('is_completed')->default(true);
             $table->string('photo_url')->nullable();
             $table->text('notes')->nullable();

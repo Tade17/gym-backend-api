@@ -25,7 +25,7 @@ class DietPlanMealController extends Controller
             'meal_id' => 'required|exists:meals,id',
             'suggested_time' => 'required',
             'meal_type' => 'required|string|in:breakfast,lunch,snack,dinner',
-            'day_of_week' => 'required|string',
+            'day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
         ]);
 
         if ($dietPlan->meals()->where('meal_id', $request->meal_id)->exists()) {
@@ -90,7 +90,7 @@ class DietPlanMealController extends Controller
         if (!$exists) {
             return response()->json(['message' => 'La comida especificada no forma parte de este plan'], 404);
         }
-        
+
         $dietPlan->meals()->detach($mealId);
 
         return response()->json(['message' => 'Meal removida del plan'], 200);

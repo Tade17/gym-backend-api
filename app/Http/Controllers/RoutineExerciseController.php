@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\RoutineExercise;
-use App\Models\Routine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Exercise;
+use App\Models\Routine;
 
 class RoutineExerciseController extends Controller
 {
