@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-
+use App\Models\User;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Plan>
  */
@@ -18,11 +18,12 @@ class PlanFactory extends Factory
     {
         return [
             // Eloquent inventará datos por nosotros
-            'name' => fake()->unique()->word() . ' Plan', // Ej: "Titan Plan"
+            'type' => fake()->randomElement(['basic', 'pro', 'personalized']),
             'description' => fake()->sentence(), // Una oración falsa
             'price' => fake()->randomFloat(2, 50, 200), // Precio entre 50.00 y 200.00
             'duration_days' => fake()->randomElement([30, 90, 365]), // Elige uno de estos
-            'is_active' => true
+            'is_active' => true,
+            'trainer_id' => User::factory()->create(['role' => 'trainer'])->id,
         ];
     }
 }

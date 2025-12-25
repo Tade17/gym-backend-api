@@ -2,75 +2,111 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Models\Routine;
+use App\Models\User;
+use App\Models\Plan;
 use App\Models\AssignedRoutine;
-use Illuminate\Support\Facades\Auth; //Para obtener el usuario autenticado   
+use App\Models\WorkoutExerciseLog;
+use App\Models\WorkoutLog;
 
 class AssignedRoutineController extends Controller
 {
-    // POST: Asignar una rutina a una fecha
-    public function store(Request $request)
+    // 1. Ver mis alumnos (Solo los que tiene asignados un entrenador)
+    public function myStudents()
+    {
+        $trainerId = Auth::id();
+        $students = User::where('assigned_trainer_id', $trainerId)
+            ->where('role', 'client')
+            ->get();
+
+        return response()->json($students);
+    }
+
+    //listar planes creados por el entrenador logueado
+    public function myPlans()
+    {
+        $trainerId = Auth::id();
+        $plans = Plan::where('trainer_id', $trainerId)->get();
+
+        return response()->json($plans);
+    }
+    //Listar rutinas creadas por el entrenador logueado
+    public function myRoutines()
+    {
+        $trainerId = Auth::id();
+        $routines = Routine::where('trainer_id', $trainerId)
+            ->with('exercises')
+            ->get();
+
+        return response()->json($routines);
+    }
+
+    //EMPEZAR ENTRENAMIENTO
+    public function startWorkout(Request $request)
     {
         $request->validate([
-            'routine_id' => 'required|exists:routines,id',
-            'assigned_date' => 'required|date', // YYYY-MM-DD
+            'assigned_routine_id' => 'required|exists:assigned_routines,id',
         ]);
 
-        // Verificamos que no tenga ya esa misma rutina asignada ese mismo día (para no duplicar)
-        $exists = AssignedRoutine::where('user_id', Auth::id())
-            ->where('routine_id', $request->routine_id)
-            ->where('assigned_date', $request->assigned_date)
-            ->exists();
-
-        if ($exists) {
-            return response()->json(['message' => 'Ya tienes esta rutina asignada para ese día'], 409);
-        }
-
-        $assignment = AssignedRoutine::create([
-            'user_id' => Auth::id(), // El usuario logueado
-            'routine_id' => $request->routine_id,
-            'assigned_date' => $request->assigned_date,
-            'status' => 0 // 0 = Pendiente
+        // Creamos la sesión de entrenamiento
+        $workoutLog = WorkoutLog::create([
+            'assigned_routine_id' => $request->assigned_routine_id,
+            'user_id' => Auth::id(),
+            'workout_date' => now(),
+            'is_completed' => 0, // Aún está entrenando
         ]);
 
         return response()->json([
-            'message' => 'Rutina agendada correctamente',
-            'data' => $assignment
+            'message' => 'Entrenamiento iniciado',
+            'workout_log_id' => $workoutLog->id
         ], 201);
     }
-
-    // GET: Ver mi agenda (puede filtrar por fecha opcionalmente)
-    // Ej: /api/my-schedule?date=2025-12-16
-    public function index(Request $request)
-    {
-        $userId = Auth::id();
-        $query = AssignedRoutine::where('user_id', $userId)
-            ->with('routine'); // Traemos los datos de la rutina (nombre, nivel)
-
-        // Si envían una fecha en la URL, filtramos por esa fecha
-        if ($request->has('date')) {
-            $query->where('assigned_date', $request->date);
-        }
-
-        $schedule = $query->orderBy('assigned_date', 'asc')->get();
-
-        return response()->json($schedule, 200);
-    }
-
-    // PUT: Marcar como completada (Check!)
+    // Marcar rutina como completada y calificar (RF-18 y RF-23)
     public function complete(Request $request, $id)
     {
-        $assignment = AssignedRoutine::where('user_id', Auth::id())->find($id);
-
-        if (!$assignment) {
-            return response()->json(['message' => 'Asignación no encontrada'], 404);
-        }
-
-        $assignment->update([
-            'status' => 1, // 1 = Completado
-            'rating' => $request->rating // Opcional: calificar del 1 al 5
+        $request->validate([
+            'rating'     => 'required|integer|min:1|max:5',
+            'duration'   => 'required|integer',
+            'workout_log_id' => 'required|exists:workout_logs,id',
+            'notes' => 'sometimes|string'
         ]);
 
-        return response()->json(['message' => '¡Rutina completada! Buen trabajo.'], 200);
+        DB::transaction(function () use ($request, $id) {
+            // 1. Actualizamos la asignación (RF-18 y RF-23)
+            $assignment = AssignedRoutine::findOrFail($id);
+            $assignment->update([
+                'status' => 1, // Completado
+                'rating' => $request->rating
+            ]);
+
+            // 2. Cerramos el Log de entrenamiento con la duración
+            $workoutLog = WorkoutLog::findOrFail($request->workout_log_id);
+            $workoutLog->update([
+                'duration'     => $request->duration,
+                'is_completed' => true, // Marcamos que la sesión terminó
+                'notes' => $request->notes
+            ]);
+        });
+
+        return response()->json(['message' => '¡Entrenamiento guardado y finalizado con éxito!']);
+    }
+
+    // Guardar el peso levantado por ejercicio (RF-17)
+    public function logExerciseProgress(Request $request)
+    {
+        $request->validate([
+            'workout_log_id' => 'required|exists:workout_logs,id',
+            'exercise_id' => 'required|exists:exercises,id',
+            'actual_sets' => 'required|integer',
+            'actual_reps' => 'required|integer',
+            'weight_used' => 'required|numeric',
+        ]);
+
+        $log = WorkoutExerciseLog::create($request->all());
+
+        return response()->json(['message' => 'Progreso guardado', 'data' => $log]);
     }
 }

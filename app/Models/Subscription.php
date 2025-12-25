@@ -4,28 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Subscription extends Model
 {
-    
+
     use HasFactory;
     protected $fillable = [
         'user_id',
         'plan_id',
         'start_date',
         'end_date',
-        'status' //active,expired,cancelled
+        'status' //active,expired
     ];
 
-    //relaciones
-    //Esta funcion define la relacion entre Subscription y User
-    //Una suscripción pertenece a un Usuario
+    // Una suscripción pertenece a un usuario
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    //Esta funcion define la relacion entre Subscription y Plan
-    //Una suscripción pertenece a un Plan
+    // Una suscripción pertenece a un plan (RF-01)
     public function plan()
     {
         return $this->belongsTo(Plan::class);

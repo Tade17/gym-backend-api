@@ -9,24 +9,32 @@ class AssignedRoutine extends Model
 {
     use HasFactory;
 
-    
+
     protected $fillable = [
-        'user_id',
-        'routine_id',
         'assigned_date',
         'status', // 0=pendiente, 1=completado, 2=omitido
-        'rating'
+        'rating',
+        'routine_id',
+        'user_id',
+        'trainer_id'
     ];
 
-    // 1. Saber qué Rutina es (para mostrar el nombre "Pierna Destructora")
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function routine()
     {
         return $this->belongsTo(Routine::class);
     }
-
-    // 2. Saber a qué Usuario pertenece
-    public function user()
+    public function trainer()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'trainer_id');
+    }
+
+    public function workoutLogs()
+    {
+        return $this->hasMany(WorkoutLog::class);
     }
 }

@@ -23,6 +23,7 @@ class User extends Authenticatable
     protected $fillable = [
         'first_name',
         'last_name',
+        'gender',
         'email',
         'password',
         'weight',
@@ -30,7 +31,8 @@ class User extends Authenticatable
         'goals',
         'role',          // 'admin', 'trainer', 'client'
         'birth_date',
-        'profile_photo'
+        'profile_photo',
+        'assigned_trainer_id' //solo para clientes
     ];
 
     /**
@@ -52,35 +54,66 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed', // Esto encripta la contraseña automático
     ];
-    // ==========================================
-    // RELACIONES (Pega esto antes del último "}")
-    // ==========================================
 
-    // 1. Relación con Suscripciones
-    // Permite hacer: $user->subscriptions (Ver historial de pagos/planes)
+    //Si soy cliente, tengo un solo entrenador
+    public function trainer()
+    {
+        return $this->belongsTo(User::class, 'assigned_trainer_id');
+    }
+
+    // Si soy entrenador, tengo muchos clientes
+    public function client()
+    {
+        return $this->hasMany(User::class, 'assigned_trainer_id');
+    }
+
+    // Relación: Un entrenador puede tener muchos planes
+    public function plans()
+    {
+        return $this->hasMany(Plan::class, 'trainer_id');
+    }
+    public function routines()
+    {
+        return $this->hasMany(Routine::class, 'trainer_id');
+    }
+
+    // RELACIÓN QUE FALTA: Un usuario tiene muchas suscripciones
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
     }
+    public function dietPlans()
+    {
+        return $this->hasMany(DietPlan::class, 'trainer_id');
+    }
 
-    // 2. Relación con Rutinas Asignadas
-    // Permite hacer: $user->assignedRoutines (Ver qué le toca entrenar)
+    // RELACIÓN: Un usuario tiene muchas rutinas asignadas
     public function assignedRoutines()
     {
         return $this->hasMany(AssignedRoutine::class);
     }
 
-    // 3. Relación con Historial de Entrenamiento
-    // Permite hacer: $user->workoutLogs (Ver su progreso en el gym)
-    public function workoutLogs()
-    {
-        return $this->hasMany(WorkoutLog::class);
-    }
-
-    // 4. Relación con Dietas Asignadas
-    // Permite hacer: $user->assignedDiets (Ver qué debe comer)
+    // RELACIÓN: Un usuario tiene muchas dietas asignadas
     public function assignedDiets()
     {
         return $this->hasMany(AssignedDiet::class);
+    }
+
+    public function workoutLogs()
+    {
+        return $this->hasManyThrough(
+            WorkoutLog::class,
+            AssignedRoutine::class,
+            'user_id',              // FK en assigned_routines
+            'assigned_routine_id',  // FK en workout_logs
+            'id',                   // PK en users
+            'id'                    // PK en assigned_routines
+        );
+    }
+
+
+    public function mealLogs()
+    {
+        return $this->hasMany(MealLog::class);
     }
 }

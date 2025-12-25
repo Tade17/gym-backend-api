@@ -14,16 +14,22 @@ return new class extends Migration
         Schema::create('assigned_diets', function (Blueprint $table) {
             $table->id();
 
+            $table->dateTime('start_date');
+            $table->date('end_date')->nullable();
+
             $table->foreignId('user_id')
-                ->constrained()
+                ->constrained('users')
                 ->cascadeOnDelete();
 
             $table->foreignId('diet_plan_id')
-                ->constrained()
+                ->constrained('diet_plans')
                 ->cascadeOnDelete();
 
-            $table->date('start_date')->useCurrent();
-            $table->date('end_date')->nullable();
+            //El entrenador que asignó la dieta (Útil para RF-09)
+            $table->foreignId('trainer_id')
+            ->nullable()
+            ->constrained('users')
+            ->nullOnDelete();
             $table->timestamps();
         });
     }

@@ -15,12 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('name', 150);
             $table->text('description')->nullable();
-            $table->enum('level', ['beginner', 'intermediate', 'advanced', 'elite']);
+            $table->enum('level', ['beginner', 'intermediate', 'advanced']);
+            $table->integer('estimated_duration')->unsigned()->nullable(); // minutos
+
             $table->foreignId('trainer_id')
                 ->constrained('users')
-                ->restrictOnDelete();//Si borra el entrenador, no se borra la rutina
+                ->cascadeOnDelete(); //cascadeOnDelete para eliminar rutinas si se elimina el entrenador
 
-            $table->integer('estimated_duration')->unsigned(); // minutos
             $table->timestamps();
         });
     }

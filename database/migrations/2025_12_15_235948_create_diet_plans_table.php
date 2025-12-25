@@ -13,12 +13,14 @@ return new class extends Migration
     {
         Schema::create('diet_plans', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100)->unique();
+            $table->string('name', 100);
             $table->text('description')->nullable();
+            $table->string('goal', 255);
 
-            // Opcional pero MUY útil a futuro
-            $table->enum('goal', ['lose_weight', 'maintain', 'gain_muscle'])->nullable();
-            
+            $table->foreignId('trainer_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+                
             $table->timestamps();
         });
     }

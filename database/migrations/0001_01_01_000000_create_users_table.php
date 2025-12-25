@@ -12,26 +12,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-             $table->id();
-            $table ->string('first_name',100);
-            $table ->string('last_name',100);
+            $table->id();
+            $table->string('first_name', 100);
+            $table->string('last_name', 100);
             $table->string('email')->unique();
-            $table ->string('password');
+            $table->string('password');
+            $table->rememberToken();
 
-            $table->decimal('weight',5,2)->unsigned();//unigned para que no acepte negativos
-            $table->decimal('height',5,2)->unsigned();
-            
+            $table->decimal('weight', 5, 2)->unsigned(); //unigned para que no acepte negativos
+            $table->decimal('height', 5, 2)->unsigned();
             $table->text('goals')->nullable();
-
-            $table->enum('role',['admin','trainer','client']);
-
+            $table->enum('role', ['admin', 'trainer', 'client']);
+            $table->enum('gender',['female','male','other']);
             $table->date('birth_date');
             $table->string('profile_photo')->default('default.png');
 
+            $table->foreignId('assigned_trainer_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete(); //nullOnDelete para que si se borra el entrenador, no se borre el cliente, solo se ponga null
 
-            $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
-            $table->timestamps();
+            $table->timestamps();   
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

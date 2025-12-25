@@ -13,22 +13,20 @@ return new class extends Migration
     {
         Schema::create('routine_exercises', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('sets')->default(3);
+            $table->unsignedInteger('reps')->default(10);
+            $table->unsignedInteger('rest_time'); // segundos
+
+
             $table->foreignId('routine_id')
                 ->constrained()
                 ->cascadeOnDelete();
-
             $table->foreignId('exercise_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->unsignedInteger('sets')->default(3);
-            $table->unsignedInteger('reps')->default(10);
 
-            $table->unsignedInteger('rest_time'); // segundos
-            
             $table->timestamps();
-            
-            $table->unique(['routine_id','exercise_id']);
         });
     }
 

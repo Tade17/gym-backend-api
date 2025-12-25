@@ -13,29 +13,24 @@ return new class extends Migration
     {
         Schema::create('assigned_routines', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('user_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->date('assigned_date'); //fecha para el calendario (RF-16)
+            $table->tinyInteger('status')->default(0); //0:pendiente , 1 :completada(RF-18)
+            $table->tinyInteger('rating')->unsigned()->nullable();  // Calificación 1-5 estrellas (RF-23)
 
             $table->foreignId('routine_id')
-                ->constrained()
-                ->restrictOnDelete();
+                ->constrained('routines')
+                ->cascadeOnDelete();
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
 
-            $table->date('assigned_date');
-
-            $table->tinyInteger('status')
-                ->default(0)
-                ->comment('0=pending, 1=completed, 2=skipped');
-                
-            $table->tinyInteger('rating')
-                ->unsigned()
-                ->nullable()
-                ->comment('1 to 5 stars');
+            // Opcional: El entrenador que asignó la rutina (Útil para RF-09)
+            $table->foreignId('trainer_id')
+            ->nullable()
+            ->constrained('users')
+            ->nullOnDelete();
 
             $table->timestamps();
-
-            $table->unique(['user_id', 'routine_id', 'assigned_date']);
         });
     }
 

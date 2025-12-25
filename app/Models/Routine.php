@@ -2,29 +2,32 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Routine extends Model
 {
     //
-    
-    protected $fillable =[
+    use HasFactory;
+
+    protected $fillable = [
         'name',
         'description',
-        'level', //beginner , intermadiate,advanced,elite
+        'level', //beginner , intermadiate,advanced
         'estimated_duration',
-        'trainer_id'
+        'trainer_id',
     ];
-    // Relación con el Entrenador que creó la rutina
-    public function trainer() {
+
+    public function trainer()
+    {
         return $this->belongsTo(User::class, 'trainer_id');
     }
 
-    // Relación Muchos a Muchos con Ejercicios
-    // IMPORTANTE: 'withPivot' recupera las series, repeticiones y descanso
-    public function exercises() {
+    public function exercises()
+    {
         return $this->belongsToMany(Exercise::class, 'routine_exercises')
-                    ->withPivot('sets', 'reps', 'duration_seconds', 'rest_seconds')
-                    ->withTimestamps();
+            ->using(RoutineExercise::class) //indica que use LA TABLA INTERMEDIA ENTRE AMBOS MODELOS
+            ->withPivot('sets', 'reps', 'rest_time')
+            ->withTimestamps();
     }
 }
