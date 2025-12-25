@@ -22,7 +22,7 @@ class DietPlan extends Model
     {
         return $this->belongsToMany(Meal::class, 'diet_plan_meal')
             ->using(DietPlanMeal::class)
-            ->withPivot('suggested_time', 'meal_type', 'day_of_week')
+            ->withPivot('id','suggested_time', 'meal_type', 'day_of_week')
             ->withTimestamps();
     }
 }
