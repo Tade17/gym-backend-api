@@ -9,49 +9,51 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    //1.Registrar para el usuario
+    // 1. Registrar usuario (Usado por el Entrenador para crear Alumnos)
     public function register(Request $request)
     {
-
-        //validamos los datos recibidos
+        // PASO 1: Validamos los datos que llegan de React
         $request->validate([
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'email' => 'required|string|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'phone_number' => 'nullable|string|max:12', // <--- NUEVO CAMPO VALIDADO
+            'phone_number' => 'nullable|string|max:20', // Validamos el formato
             'gender' => 'required|in:male,female,other',
             'role' => 'required|in:admin,trainer,client',
             'weight' => 'required|numeric',
             'height' => 'required|numeric',
             'birth_date' => 'required|date',
             'goals' => 'nullable|string',
-            'profile_photo' => 'nullable|string',
-            'assigned_trainer_id' => $trainerId // <--- VINCULACIÓN AUTOMÁTICA
+            'profile_photo' => 'nullable|string'
+            // OJO: assigned_trainer_id NO se valida aquí porque no viene del formulario, lo calculamos nosotros
         ]);
-        // Lógica para asignar entrenador automáticamente:
+
+        // PASO 2: Calculamos quién es el entrenador
         // Si quien hace el registro es un Entrenador logueado, él será el 'assigned_trainer'
         $trainerId = null;
         if (Auth::check() && Auth::user()->role === 'trainer') {
             $trainerId = Auth::id();
         }
-        //creamos al usuario 
+
+        // PASO 3: Creamos al usuario en la BD
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'phone_number' => 'nullable|string|max:12', // <--- NUEVO CAMPO VALIDADO
+            'phone_number' => $request->phone_number, // <--- CORREGIDO: Usamos el dato del request
             'gender' => $request->gender,
-            'password' => Hash::make($request->password), //encriptamos la contraseña
+            'password' => Hash::make($request->password),
             'role' => $request->role,
             'weight' => $request->weight,
             'height' => $request->height,
             'birth_date' => $request->birth_date,
             'goals' => $request->goals,
-            'profile_photo' => $request->profile_photo
+            'profile_photo' => $request->profile_photo ?? 'default.png',
+            'assigned_trainer_id' => $trainerId // <--- CORREGIDO: Aquí asignamos la variable calculada
         ]);
 
-        //creamos el token de autenticacion
+        // PASO 4: Creamos el token (opcional si solo estás registrando a otro, pero útil)
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -61,44 +63,40 @@ class AuthController extends Controller
         ], 201);
     }
 
-    //2.Login para el usuario
+    // 2. Login
     public function login(Request $request)
     {
-        //validamos los datos recubudis
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        //buscamos al usuario por su email
         $user = User::where('email', $request->email)
-            ->with('subscriptions.plan')
+            ->with('subscriptions.plan') // Traemos el plan si existe
             ->first();
 
-        //verificamos si el usuario existe y la contraseña es correcta
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Invalid credentials'
+                'message' => 'Credenciales incorrectas'
             ], 401);
         }
 
-        //si pasa la verificacion , creamos un token de autenticacion
         $token = $user->createToken('auth_token')->plainTextToken;
+        
         return response()->json([
-            'message' => 'Login successful',
+            'message' => 'Login exitoso',
             'user' => $user,
             'token' => $token
         ], 200);
     }
-    //3.Logout 
+
+    // 3. Logout 
     public function logout(Request $request)
     {
-        //borrar el token actual
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logged out successfully'
+            'message' => 'Sesión cerrada correctamente'
         ], 200);
     }
-    
 }
