@@ -32,7 +32,8 @@ class User extends Authenticatable
         'role',          // 'admin', 'trainer', 'client'
         'birth_date',
         'profile_photo',
-        'assigned_trainer_id' //solo para clientes
+        'assigned_trainer_id', //solo para clientes
+        'phone_number'
     ];
 
     /**

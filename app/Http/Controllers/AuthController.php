@@ -19,19 +19,28 @@ class AuthController extends Controller
             'last_name' => 'required|string',
             'email' => 'required|string|email|unique:users,email',
             'password' => 'required|string|min:6',
+            'phone_number' => 'nullable|string|max:12', // <--- NUEVO CAMPO VALIDADO
             'gender' => 'required|in:male,female,other',
             'role' => 'required|in:admin,trainer,client',
             'weight' => 'required|numeric',
             'height' => 'required|numeric',
             'birth_date' => 'required|date',
             'goals' => 'nullable|string',
-            'profile_photo' => 'nullable|string'
+            'profile_photo' => 'nullable|string',
+            'assigned_trainer_id' => $trainerId // <--- VINCULACIÓN AUTOMÁTICA
         ]);
+        // Lógica para asignar entrenador automáticamente:
+        // Si quien hace el registro es un Entrenador logueado, él será el 'assigned_trainer'
+        $trainerId = null;
+        if (Auth::check() && Auth::user()->role === 'trainer') {
+            $trainerId = Auth::id();
+        }
         //creamos al usuario 
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
+            'phone_number' => 'nullable|string|max:12', // <--- NUEVO CAMPO VALIDADO
             'gender' => $request->gender,
             'password' => Hash::make($request->password), //encriptamos la contraseña
             'role' => $request->role,
@@ -91,4 +100,5 @@ class AuthController extends Controller
             'message' => 'Logged out successfully'
         ], 200);
     }
+    
 }
