@@ -8,12 +8,13 @@ use Illuminate\Support\Facades\Auth;
 
 class PlanController extends Controller
 {
-    // GET: Obtener todos los planes
     // 1. LISTAR todos (GET /api/plans)
     public function index()
     {
-        $planes = Plan::where('trainer_id', Auth::id())
-            ->get();
+        // CORRECCIÓN: No filtramos por Auth::id() porque esta ruta es pública.
+        // Y no usamos trainer_id porque no parece estar en tu tabla de la foto.
+        $planes = Plan::where('is_active', 1)->get();
+        
         return response()->json($planes, 200);
     }
 

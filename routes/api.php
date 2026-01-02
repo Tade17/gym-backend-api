@@ -60,7 +60,8 @@ Route::post('/meals', [MealController::class, 'store']);
 Route::put('/meals/{id}', [MealController::class, 'update']);
 Route::delete('/meals/{id}', [MealController::class, 'destroy']);
 
-
+Route::get('/plans', [PlanController::class, 'index']); 
+Route::get('/plans/{id}', [PlanController::class, 'show']);
 
 
 // Rutas Protegidas (Necesitas Token para Crear/Editar/Borrar)
@@ -71,9 +72,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/my-subscription', [SubscriptionController::class, 'mySubscription']);
 
     // PLANES
-    Route::get('/plans', [PlanController::class, 'index']);
+    //Route::get('/plans', [PlanController::class, 'index']);
     Route::post('/plans', [PlanController::class, 'store']);
-    Route::get('/plans/{id}', [PlanController::class, 'show']);
+    //Route::get('/plans/{id}', [PlanController::class, 'show']);
     Route::put('/plans/{id}', [PlanController::class, 'update']);
     Route::delete('/plans/{id}', [PlanController::class, 'destroy']);
 

@@ -8,6 +8,17 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // Importante para la API más adelante
 
+// === AGREGAR ESTOS IMPORTS QUE FALTAN ===
+use App\Models\Plan;
+use App\Models\Subscription;
+use App\Models\Routine;
+use App\Models\DietPlan;
+use App\Models\AssignedRoutine;
+use App\Models\AssignedDiet;
+use App\Models\WorkoutLog;
+use App\Models\MealLog;
+// ========================================
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -21,20 +32,20 @@ class User extends Authenticatable
 
 
     protected $fillable = [
-        'first_name',
-        'last_name',
-        'gender',
-        'email',
-        'password',
-        'weight',
-        'height',
-        'goals',
-        'role',          // 'admin', 'trainer', 'client'
-        'birth_date',
-        'profile_photo',
-        'assigned_trainer_id', //solo para clientes
-        'phone_number'
-    ];
+    'first_name',
+    'last_name',
+    'email',
+    'phone_number',     // <--- Asegúrate que este esté
+    'gender',
+    'password',
+    'role',
+    'weight',
+    'height',
+    'birth_date',
+    'goals',
+    'profile_photo',
+    'assigned_trainer_id', // <--- AGREGA ESTO OBLIGATORIAMENTE
+];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -71,7 +82,7 @@ class User extends Authenticatable
     // Relación: Un entrenador puede tener muchos planes
     public function plans()
     {
-        return $this->hasMany(Plan::class, 'trainer_id');
+        return $this->hasMany(Plan::class, 'train er_id');
     }
     public function routines()
     {
