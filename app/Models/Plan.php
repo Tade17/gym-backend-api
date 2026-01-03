@@ -10,6 +10,7 @@ class Plan extends Model
     use HasFactory;
 
     protected $fillable = [
+        'name',
         'type',
         'description',
         'price',

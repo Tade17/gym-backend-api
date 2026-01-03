@@ -18,13 +18,13 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->rememberToken();
-
+            $table->string('phone_number')->nullable();
             $table->decimal('weight', 5, 2)->unsigned(); //unigned para que no acepte negativos
             $table->decimal('height', 5, 2)->unsigned();
             $table->text('goals')->nullable();
             $table->enum('role', ['admin', 'trainer', 'client']);
-            $table->enum('gender',['female','male','other']);
-            $table->date('birth_date');
+            $table->char('gender', 1)->nullable();
+            $table->date('birth_date')->nullable();
             $table->string('profile_photo')->default('default.png');
 
             $table->foreignId('assigned_trainer_id')

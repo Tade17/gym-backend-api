@@ -128,4 +128,50 @@ class User extends Authenticatable
     {
         return $this->hasMany(MealLog::class);
     }
+
+    protected static function booted()
+{
+    static::created(function ($user) {
+        if ($user->role === 'trainer') {
+            
+            $duraciones = [
+                ['days' => 30,  'label' => 'Mensual',    'multiplier' => 1],
+                ['days' => 90,  'label' => 'Trimestral', 'multiplier' => 3],
+                ['days' => 365, 'label' => 'Anual',      'multiplier' => 12],
+            ];
+
+            $tipos = [
+                ['type' => 'basic',        'name' => 'Plan Básico',        'base_price' => 50],
+                ['type' => 'Pro',          'name' => 'Plan Pro',           'base_price' => 100],
+                ['type' => 'Personalized', 'name' => 'Plan Personalizado', 'base_price' => 150],
+            ];
+
+            foreach ($tipos as $tipo) {
+                foreach ($duraciones as $duracion) {
+                    
+                    // Calculamos un precio base sugerido (opcional, puedes poner 0)
+                    $price = $tipo['base_price'] * $duracion['multiplier'];
+                    if ($duracion['days'] > 30) {
+                        $price = $price * 0.90;
+                    }
+
+                    Plan::create([
+                    'name'          => $tipo['name'],
+                    'type'          => $tipo['type'],
+                    'price'         => round($price, 2),
+                    'duration_days' => $duracion['days'],
+                    
+                    // CAMBIO 1: Descripción genérica para obligar a editar
+                    'description'   => 'Describe los beneficios de este plan aquí...', 
+                    
+                    // CAMBIO 2: Todos nacen apagados (false / 0)
+                    'is_active'     => false, 
+                    
+                    'trainer_id'    => $user->id
+                ]);
+                }
+            }
+        }
+    });
+}    
 }

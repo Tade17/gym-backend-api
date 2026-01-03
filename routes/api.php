@@ -52,6 +52,10 @@ Route::get('/user', function (Request $request) {
 // Rutas públicas de ejercicios para insertar en distintas rutinas
 Route::get('/exercises', [ExerciseController::class, 'index']);
 Route::get('/exercises/{id}', [ExerciseController::class, 'show']);
+ // EJERCICIOS
+    Route::post('/exercises', [ExerciseController::class, 'store']);
+    Route::put('/exercises/{id}', [ExerciseController::class, 'update']);
+    Route::delete('/exercises/{id}', [ExerciseController::class, 'destroy']);
 
 //Rutas públicas para meals->comidas para insertar en distintas dietas
 Route::get('/meals', [MealController::class, 'index']);
@@ -78,10 +82,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/plans/{id}', [PlanController::class, 'update']);
     Route::delete('/plans/{id}', [PlanController::class, 'destroy']);
 
-    // EJERCICIOS
-    Route::post('/exercises', [ExerciseController::class, 'store']);
-    Route::put('/exercises/{id}', [ExerciseController::class, 'update']);
-    Route::delete('/exercises/{id}', [ExerciseController::class, 'destroy']);
+    // // EJERCICIOS
+    // Route::post('/exercises', [ExerciseController::class, 'store']);
+    // Route::put('/exercises/{id}', [ExerciseController::class, 'update']);
+    // Route::delete('/exercises/{id}', [ExerciseController::class, 'destroy']);
 
     // RUTINAS
     Route::get('/routines', [RoutineController::class, 'index']);
