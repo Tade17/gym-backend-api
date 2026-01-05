@@ -23,4 +23,9 @@ class Plan extends Model
     {
         return $this->belongsTo(User::class, 'trainer_id');
     }
+    // Un plan puede tener muchas suscripciones (ventas)
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
 }
