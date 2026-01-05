@@ -37,6 +37,10 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::get('/profile', function (Request $request) {
         return $request->user();
     });
+    // AGREGA ESTAS DOS:
+    Route::post('/update-profile', [AuthController::class, 'updateProfile']); 
+    Route::post('/update-password', [AuthController::class, 'updatePassword']);
+    Route::delete('/delete-profile-photo', [AuthController::class, 'deleteProfilePhoto']);
 });
 
 
@@ -67,15 +71,16 @@ Route::delete('/meals/{id}', [MealController::class, 'destroy']);
 Route::get('/plans', [PlanController::class, 'index']); 
 Route::get('/plans/{id}', [PlanController::class, 'show']);
 
-// RUTINAS
-    Route::get('/routines', [RoutineController::class, 'index']);
-    Route::post('/routines', [RoutineController::class, 'store']);
-    Route::put('/routines/{id}', [RoutineController::class, 'update']);
-    Route::delete('/routines/{id}', [RoutineController::class, 'destroy']);
-// Agregar ejercicio a una rutina específica
-    Route::post('/routines/{routineId}/exercises', [RoutineExerciseController::class, 'store']);
+// // RUTINAS
+//     Route::get('/routines', [RoutineController::class, 'index']);
+//     Route::post('/routines', [RoutineController::class, 'store']);
+//     Route::put('/routines/{id}', [RoutineController::class, 'update']);
+//     Route::delete('/routines/{id}', [RoutineController::class, 'destroy']);
+// // Agregar ejercicio a una rutina específica
+//     Route::post('/routines/{routineId}/exercises', [RoutineExerciseController::class, 'store']);
 // Rutas Protegidas (Necesitas Token para Crear/Editar/Borrar)
 Route::middleware('auth:sanctum')->group(function () {
+    
 
     // SUSCRIPCIONES
     Route::post('/subscribe', [SubscriptionController::class, 'store']);
@@ -93,11 +98,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::put('/exercises/{id}', [ExerciseController::class, 'update']);
     // Route::delete('/exercises/{id}', [ExerciseController::class, 'destroy']);
 
-    // // RUTINAS
-    // Route::get('/routines', [RoutineController::class, 'index']);
-    // Route::post('/routines', [RoutineController::class, 'store']);
-    // Route::put('/routines/{id}', [RoutineController::class, 'update']);
-    // Route::delete('/routines/{id}', [RoutineController::class, 'destroy']);
+    // RUTINAS
+    Route::get('/routines', [RoutineController::class, 'index']);
+    Route::post('/routines', [RoutineController::class, 'store']);
+    Route::put('/routines/{id}', [RoutineController::class, 'update']);
+    Route::delete('/routines/{id}', [RoutineController::class, 'destroy']);
 
 
     // --- DIETAS ---
@@ -117,7 +122,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ROUTINE-EXERCISE (Pivot)
     // // Agregar ejercicio a una rutina específica
-    // Route::post('/routines/{routineId}/exercises', [RoutineExerciseController::class, 'store']);
+    Route::post('/routines/{routineId}/exercises', [RoutineExerciseController::class, 'store']);
+
     // Quitar un ejercicio de una rutina específica
     Route::delete('/routines/{routineId}/exercises/{exerciseId}', [RoutineExerciseController::class, 'destroy']);
 

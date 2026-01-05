@@ -8,6 +8,8 @@ class Food extends Model
 {
     protected $fillable = [
         'name',
-        'calories_per_100g'
+        'category',         // Nuevo
+        'calories_per_100g',
+        'image_url',        // Nuevo
     ];
 }

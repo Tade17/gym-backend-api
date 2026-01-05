@@ -21,6 +21,7 @@ class SubscriptionController extends Controller
 
         // 1. Obtener planes y contar suscripciones activas
         $planes = Plan::where('trainer_id', $trainerId)
+            ->where('is_active',1)
             ->withCount(['subscriptions' => function ($query) {
                 $query->where('status', 1);
             }])
@@ -65,7 +66,7 @@ class SubscriptionController extends Controller
         if ($days == 365) return 'Anual';
         return $days . ' días';
     }
-    
+
     // POST: Crear una suscripción (Compra de plan)
     public function store(Request $request)
     {

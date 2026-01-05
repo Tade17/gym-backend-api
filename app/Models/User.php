@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // Importante para la API más adelante
+use Illuminate\Database\Eloquent\Casts\Attribute; 
+use Illuminate\Support\Facades\Storage;
 
 // === AGREGAR ESTOS IMPORTS QUE FALTAN ===
 use App\Models\Plan;
@@ -66,6 +68,33 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed', // Esto encripta la contraseña automático
     ];
+
+    // 1. Busca la variable $appends. Si no existe, créala.
+    // Esto le dice a Laravel: "Siempre que envíes un usuario, agrega este campo extra".
+    protected $appends = [
+        'profile_photo_url',
+    ];
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo) {
+            // Si es una URL externa (por si usas Google Login luego), devuélvela tal cual
+            if (str_starts_with($this->profile_photo, 'http')) {
+                return $this->profile_photo;
+            }
+            
+            // Si es un archivo local, crea el link completo http://127.0.0.1:8000/storage/...
+            // NOTA: 'default.png' está en la raíz de public, no en storage, así que validamos:
+            if ($this->profile_photo === 'default.png') {
+                 return asset('default.png');
+            }
+
+            return asset('storage/' . $this->profile_photo);
+        }
+
+        // Si no tiene foto, devuelve null o una imagen por defecto
+        return asset('default.png'); 
+    }
+
 
     //Si soy cliente, tengo un solo entrenador
     public function trainer()

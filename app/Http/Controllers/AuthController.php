@@ -136,4 +136,91 @@ class AuthController extends Controller
             'message' => 'Sesión cerrada correctamente'
         ], 200);
     }
+
+    // Actualizar Información del Perfil (Nombre, Email, Foto)
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name'  => 'required|string|max:255',
+            'email'      => 'required|email|unique:users,email,' . $user->id,
+            'photo'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+        ]);
+
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->email = $request->email;
+
+        // Subida de imagen
+        if ($request->hasFile('photo')) {
+            // Eliminar foto anterior si existe y no es la default (opcional)
+            // ...
+            
+            // Guardar nueva foto en storage/app/public/profile-photos
+            $path = $request->file('photo')->store('profile-photos', 'public');
+            
+            // Si quieres guardar la URL completa en la BD o solo el path
+            // Aquí guardamos solo el nombre del archivo o path relativo
+            $user->profile_photo = $path; 
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Perfil actualizado correctamente',
+            'user' => $user,
+            // Truco para devolver la URL completa al frontend
+            'photo_url' => $user->profile_photo ? asset('storage/' . $user->profile_photo) : null
+        ]);
+    }
+
+    // Actualizar Contraseña
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|string|min:8|confirmed', // confirmed busca new_password_confirmation
+        ]);
+
+        $user = $request->user();
+
+        // Verificar contraseña actual
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'La contraseña actual no es correcta.'], 400);
+        }
+
+        // Cambiar contraseña
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Contraseña actualizada con éxito.']);
+    }
+        // Eliminar la foto de perfil y volver a la default
+   public function deleteProfilePhoto(Request $request)
+    {
+        $user = $request->user();
+
+        // 1. Solo borramos el archivo físico si existe y no es la imagen por defecto
+        if ($user->profile_photo && $user->profile_photo !== 'default.png') {
+            // Asegúrate de tener importado: use Illuminate\Support\Facades\Storage;
+            Storage::disk('public')->delete($user->profile_photo);
+        }
+
+        // 2. Actualizamos la base de datos
+        $user->profile_photo = 'default.png';
+        $user->save();
+
+        // 3. --- EL CAMBIO CLAVE ---
+        // En lugar de buscar un archivo local que quizás no existe,
+        // generamos una URL dinámica usando el nombre del usuario.
+        $nombreCompleto = $user->first_name . ' ' . $user->last_name;
+        $fallbackUrl = 'https://ui-avatars.com/api/?name=' . urlencode($nombreCompleto) . '&color=7F9CF5&background=EBF4FF';
+
+        return response()->json([
+            'message' => 'Foto eliminada correctamente',
+            'photo_url' => $fallbackUrl 
+        ]);
+    }
 }
