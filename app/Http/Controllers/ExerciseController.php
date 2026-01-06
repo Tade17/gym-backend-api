@@ -69,11 +69,21 @@ class ExerciseController extends Controller
     // DELETE: Eliminar
     public function destroy($id)
     {
-        $exercise = Exercise::find($id);
-        if (!$exercise) {
-            return response()->json(['message' => 'Ejercicio no encontrado'], 404);
-        }
-        $exercise->delete();
-        return response()->json(['message' => 'Ejercicio eliminado'], 200);
+        $exercise = Exercise::findOrFail($id);
+
+    // Verificamos si el ejercicio está presente en la tabla pivot de rutinas
+    // Asumiendo que la relación en tu modelo Exercise se llama 'routines'
+    if ($exercise->routines()->exists()) {
+        return response()->json([
+            'message' => 'No se puede eliminar: Este ejercicio forma parte de una o más rutinas activas.',
+            'error' => 'integrity_violation'
+        ], 422); // Error de validación / conflicto
+    }
+
+    $exercise->delete();
+
+    return response()->json([
+        'message' => 'Ejercicio eliminado con éxito.'
+    ], 200);
     }
 }

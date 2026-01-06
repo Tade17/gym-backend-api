@@ -100,6 +100,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // RUTINAS
     Route::get('/routines', [RoutineController::class, 'index']);
+    Route::get('/routines/{id}', [RoutineController::class, 'show']); // <--- AGREGA ESTA LÍNEA
     Route::post('/routines', [RoutineController::class, 'store']);
     Route::put('/routines/{id}', [RoutineController::class, 'update']);
     Route::delete('/routines/{id}', [RoutineController::class, 'destroy']);

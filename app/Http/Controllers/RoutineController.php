@@ -61,6 +61,7 @@ class RoutineController extends Controller
                     'sets' => $ex['sets'],
                     'reps' => $ex['reps'],
                     'rest_time' => $ex['rest_time'],
+                    'notes' => $ex['notes'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -127,7 +128,8 @@ class RoutineController extends Controller
                     $exercisesData[$ex['id']] = [
                         'sets' => $ex['sets'],
                         'reps' => $ex['reps'],
-                        'rest_time' => $ex['rest_time']
+                        'rest_time' => $ex['rest_time'],
+                        'notes' => $ex['notes'] ?? null
                     ];
                 }
                 $routine->exercises()->sync($exercisesData);
@@ -142,15 +144,28 @@ class RoutineController extends Controller
 
     public function destroy($id)
     {
-        $routine = Routine::where('id', $id)
-            ->where('trainer_id', Auth::id())
-            ->first();
+        $routine = Routine::where('id', $id)->where('trainer_id', Auth::id())->first();
 
         if (!$routine) {
-            return response()->json(['message' => 'No puedes borrar una rutina que no te pertenece'], 403);
+            return response()->json(['message' => 'No autorizado o no existe'], 403);
         }
 
-        $routine->delete();
-        return response()->json(['message' => 'Rutina eliminada'], 200);
+        return DB::transaction(function () use ($routine) {
+            $routine->exercises()->detach(); // Borra hijos en routine_exercises
+            $routine->delete();              // Borra padre en routines
+            return response()->json(['message' => 'Rutina eliminada por completo'], 200);
+        });
+    }
+    public function show($id)
+    {
+        // Cargamos la rutina con sus ejercicios para que React pueda rellenar el formulario
+        $routine = Routine::with('exercises')->findOrFail($id);
+        
+        // Verificamos que pertenezca al entrenador (seguridad extra)
+        if ($routine->trainer_id !== auth()->id()) {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+
+        return response()->json($routine);
     }
 }

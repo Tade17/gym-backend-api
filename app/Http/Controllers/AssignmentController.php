@@ -22,6 +22,7 @@ class AssignmentController extends Controller
             'routine_id' => 'required|exists:routines,id',
             'plan_id' => 'required|exists:plans,id',
             'assigned_date' => 'required|date',
+            'goal' => 'nullable|string'
         ]);
 
         if (Auth::user()->role !== 'trainer') {
@@ -40,10 +41,15 @@ class AssignmentController extends Controller
         $userIds = User::whereHas('subscriptions', function ($query) use ($request) {
             $query->where('plan_id', $request->plan_id)
                 ->where('status', 1);
-        })->pluck('id');
+        })
+        // NUEVO: Filtro por el texto del objetivo en el perfil del usuario
+        ->when($request->goal, function ($query) use ($request) {
+            return $query->where('goals', 'LIKE', '%' . $request->goal . '%');
+        })
+        ->pluck('id');
 
         if ($userIds->isEmpty()) {
-            return response()->json(['message' => 'No hay alumnos activos en este plan'], 404);
+            return response()->json(['message' => 'No hay alumnos que coincidan con el plan y objetivo seleccionados'], 404);
         }
 
         DB::transaction(function () use ($userIds, $request) {
