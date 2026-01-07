@@ -3,17 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Plan;            // <--- IMPORTANTE
-use App\Models\Subscription;    // <--- IMPORTANTE
+use App\Models\Plan;          
+use App\Models\Subscription;   
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // <--- PARA LA TRANSACCIÓN
 use Carbon\Carbon;              // <--- PARA LAS FECHAS
-use Illuminate\Support\Facades\Storage; // <--- AGREGA ESTO ARRIBA
+use Illuminate\Support\Facades\Storage; 
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeClientMail;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;   // <--- Para guardar errores en el log si fallan
 
 class AuthController extends Controller
 {
+
+    public function index()
+{
+    // Traemos usuarios con rol 'client' E INCLUIMOS su suscripción y el plan asociado
+    $clients = User::where('role', 'client')
+                   ->with(['subscriptions' => function($query) {
+                       $query->latest(); // Solo la activa o la última
+                   }, 'subscriptions.plan']) 
+                   ->get();
+
+    return response()->json($clients);
+}
+
     public function register(Request $request)
 {
     // 1. VALIDACIÓN
@@ -85,7 +102,7 @@ class AuthController extends Controller
                 'plan_id' => $plan->id,
                 'start_date' => Carbon::now(),
                 'end_date' => Carbon::now()->addDays($durationInDays),
-                'status' => 'active'
+                'status' => 1
             ]);
         }
         // Si no hay plan_id (Entrenador), el código salta esta parte y sigue feliz.
@@ -93,6 +110,50 @@ class AuthController extends Controller
         // E. Generar Token y Respuesta
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // F. ENVÍO DE CREDENCIALES (Email y WhatsApp)
+        if ($user->role === 'client') {
+            $passwordRaw = $request->password; // Contraseña sin encriptar para el mensaje
+
+            // 1. Envío de Correo Electrónico
+            try {
+                Mail::to($user->email)->send(new WelcomeClientMail($user, $passwordRaw));
+            } catch (\Exception $e) {
+                \Log::error("Error enviando email: " . $e->getMessage());
+            }
+
+            // 2. Envío de WhatsApp (INTEGRACIÓN CON ULTRAMSG)
+                try {
+                    // Preparamos el mensaje
+                    $mensajeWA = "¡Hola {$user->first_name}! Bienvenid@ a nuestro gimnasio. 🏋️\n\n" .
+                                 "Tus credenciales de acceso son:\n" .
+                                 "📧 Usuario: {$user->email}\n" .
+                                 "🔑 Clave: {$passwordRaw}\n\n" .
+                                 "Descarga nuestra App y empieza a entrenar hoy.";
+
+                    // Limpiamos el número (solo dejamos dígitos)
+                    $cleanPhone = preg_replace('/[^0-9]/', '', $user->phone_number);
+
+                    // Obtenemos credenciales del .env
+                    $instance = env('ULTRAMSG_INSTANCE');
+                    $tokenWA = env('ULTRAMSG_TOKEN');
+
+                    // Validamos antes de enviar
+                    if ($instance && $tokenWA && $cleanPhone) {
+                        $url = "https://api.ultramsg.com/{$instance}/messages/chat";
+                        
+                        Http::post($url, [
+                            'token' => $tokenWA,
+                            'to'    => $cleanPhone,
+                            'body'  => $mensajeWA
+                        ]);
+                    } else {
+                        Log::warning("WhatsApp no enviado: Faltan credenciales en .env o el usuario no tiene teléfono.");
+                    }
+
+                } catch (\Exception $e) {
+                    Log::error("Error enviando WhatsApp: " . $e->getMessage());
+                }
+        }
         return response()->json([
             'message' => 'Usuario registrado con éxito', // Mensaje genérico
             'user' => $user,
