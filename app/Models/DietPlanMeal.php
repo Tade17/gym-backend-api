@@ -15,5 +15,8 @@ class DietPlanMeal extends Pivot
         'diet_plan_id',
         'meal_id'
     ];
-
+    public function meal()
+    {
+        return $this->belongsTo(Meal::class);
+    }
 }

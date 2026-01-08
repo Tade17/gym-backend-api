@@ -13,10 +13,12 @@ class DietPlanController extends Controller
     // GET /api/diet-plans
     public function index()
     {
-        $dietPlans = DietPlan::where('trainer_id', Auth::id())
-            ->with('meals.food') 
+        // Traemos el plan -> sus dias/horas -> la comida -> los alimentos
+        $plans = DietPlan::where('trainer_id', Auth::id())
+            ->with(['dietPlanMeals.meal.foods']) 
             ->get();
-        return response()->json($dietPlans, 200);
+
+        return response()->json($plans);
     }
 
 
