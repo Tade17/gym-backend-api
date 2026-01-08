@@ -81,7 +81,17 @@ Route::get('/plans/{id}', [PlanController::class, 'show']);
 // Rutas Protegidas (Necesitas Token para Crear/Editar/Borrar)
 Route::middleware('auth:sanctum')->group(function () {
     
+    Route::get('/users', function (Illuminate\Http\Request $request) {
+        $query = \App\Models\User::where('role', 'client');
 
+        // Si el frontend envía un objetivo, filtramos
+        if ($request->has('goal') && $request->goal != '') {
+            // Usamos LIKE porque el objetivo del usuario puede ser un texto largo
+            $query->where('goals', 'LIKE', '%' . $request->goal . '%');
+        }
+
+        return $query->get();
+    });
     // SUSCRIPCIONES
     Route::post('/subscribe', [SubscriptionController::class, 'store']);
     Route::get('/my-subscription', [SubscriptionController::class, 'mySubscription']);
@@ -155,12 +165,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- ASIGNACIONES MASIVAS ---
     Route::post('/assignments/mass-routine', [AssignmentController::class, 'massAssignRoutine']);
-    Route::post('/assignments/mass-diet', [AssignmentController::class, 'massAssignDiet']);
+    // Route::post('/assignments/mass-diet', [AssignmentController::class, 'massAssignDiet']);
 
     // --- ASIGNACIONES INDIVIDUALES ---
     Route::post('/assignments/individual-routine', [AssignmentController::class, 'assignRoutineToUser']);
-    Route::post('/assignments/individual-diet', [AssignmentController::class, 'assignDietToUser']);
+    // Route::post('/assignments/individual-diet', [AssignmentController::class, 'assignDietToUser']);
 
+    // Asignación Individual
+    Route::post('/assigned-diets', [AssignedDietController::class, 'store']); 
+    // Asignación Masiva
+    Route::post('/assigned-diets/massive', [AssignedDietController::class, 'storeMassive']);
 
 
     // --- RUTAS DEL ALUMNO ---
