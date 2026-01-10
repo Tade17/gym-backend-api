@@ -25,7 +25,7 @@ class RoutineController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|unique:routines,name',
+            'name' => 'required|string',
             'description' => 'nullable|string',
             'level' => 'required|in:beginner,intermediate,advanced',
             'estimated_duration' => 'required|integer|min:1',

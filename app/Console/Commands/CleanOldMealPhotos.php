@@ -32,7 +32,7 @@ class CleanOldMealPhotos extends Command
         $oldLogs = MealLog::where('created_at', '<', now()->subDay())->get();
 
         foreach ($oldLogs as $log) {
-            // 1. Borrar el archivo físico (Quitamos el "/storage/" de la URL para tener la ruta real)
+            // 1. Borrar el archivo físico 
             $path = str_replace('/storage/', '', $log->photo_url);
             Storage::disk('public')->delete($path);
 

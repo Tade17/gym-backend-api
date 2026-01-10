@@ -29,10 +29,10 @@ class User extends Authenticatable
         'weight',
         'height',
         'goals',
-        'role',          // 'admin', 'trainer', 'client'
+        'role',          
         'birth_date',
         'profile_photo',
-        'assigned_trainer_id', //solo para clientes
+        'assigned_trainer_id',
         'phone_number'
     ];
 
@@ -53,7 +53,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed', // Esto encripta la contraseña automático
+        'password' => 'hashed', 
     ];
 
     //Si soy cliente, tengo un solo entrenador
