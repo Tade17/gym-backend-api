@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
-
+            $table->string('name');
             $table->enum('type', ['basic', 'Pro', 'Personalized']);
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2)->unsigned();

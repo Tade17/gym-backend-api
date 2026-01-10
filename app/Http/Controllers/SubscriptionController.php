@@ -11,6 +11,62 @@ use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller
 {
+    // ==========================================
+    //  ÁREA DEL ENTRENADOR (DASHBOARD)
+    // ==========================================
+
+    public function summary()
+    {
+        $trainerId = Auth::id();
+
+        // 1. Obtener planes y contar suscripciones activas
+        $planes = Plan::where('trainer_id', $trainerId)
+            ->where('is_active',1)
+            ->withCount(['subscriptions' => function ($query) {
+                $query->where('status', 1);
+            }])
+            ->get();
+
+        // 2. Calcular métricas
+        $totalIngresosMensuales = 0;
+        $totalSuscripcionesActivas = 0;
+        $planesData = [];
+
+        foreach ($planes as $plan) {
+            $ingresoPlan = $plan->price * $plan->subscriptions_count;
+            
+            $totalIngresosMensuales += $ingresoPlan;
+            $totalSuscripcionesActivas += $plan->subscriptions_count;
+
+            $planesData[] = [
+                'id'            => $plan->id,
+                'plan_name'     => $plan->name,
+                'price'         => $plan->price,
+                'cycle'         => $this->getCycleLabel($plan->duration_days),
+                'clients_count' => $plan->subscriptions_count,
+                'status'        => $plan->is_active,
+                'total_revenue' => $ingresoPlan,
+            ];
+        }
+
+        return response()->json([
+            'stats' => [
+                'mrr'        => $totalIngresosMensuales,
+                'activeSubs' => $totalSuscripcionesActivas,
+                // Eliminamos churn y mrrTrend para simplificar
+            ],
+            'table_data' => $planesData
+        ]);
+    }
+
+    private function getCycleLabel($days)
+    {
+        if ($days == 30) return 'Mensual';
+        if ($days == 90) return 'Trimestral';
+        if ($days == 365) return 'Anual';
+        return $days . ' días';
+    }
+
     // POST: Crear una suscripción (Compra de plan)
     public function store(Request $request)
     {

@@ -25,4 +25,9 @@ class DietPlan extends Model
             ->withPivot('id','suggested_time', 'meal_type', 'day_of_week')
             ->withTimestamps();
     }
+    // app/Models/DietPlan.php
+    public function dietPlanMeals()
+    {
+        return $this->hasMany(DietPlanMeal::class);
+    }
 }

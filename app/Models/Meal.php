@@ -26,4 +26,10 @@ class Meal extends Model
             ->withPivot('quantity')
             ->withTimestamps();
     }
+    // app/Models/Meal.php
+    public function foods()
+    {
+        return $this->belongsToMany(Food::class, 'meal_food')
+                    ->withPivot('quantity'); // Para traer la cantidad (100g)
+    }
 }

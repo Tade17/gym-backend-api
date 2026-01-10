@@ -18,8 +18,14 @@ class AssignedRoutineController extends Controller
     public function myStudents()
     {
         $trainerId = Auth::id();
+        
         $students = User::where('assigned_trainer_id', $trainerId)
             ->where('role', 'client')
+            // --- AGREGAMOS ESTO PARA TRAER PLANES Y SUSCRIPCIONES ---
+            ->with(['subscriptions' => function($query) {
+                $query->latest(); // Ordenamos para que la [0] sea la más reciente
+            }, 'subscriptions.plan']) 
+            // --------------------------------------------------------
             ->get();
 
         return response()->json($students);
