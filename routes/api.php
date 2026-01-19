@@ -80,7 +80,7 @@ Route::get('/plans/{id}', [PlanController::class, 'show']);
 //     Route::post('/routines/{routineId}/exercises', [RoutineExerciseController::class, 'store']);
 // Rutas Protegidas (Necesitas Token para Crear/Editar/Borrar)
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     Route::get('/users', function (Illuminate\Http\Request $request) {
         $query = \App\Models\User::where('role', 'client');
 
@@ -210,3 +210,6 @@ Route::middleware('auth:sanctum')->prefix('trainer')->group(function () {
     Route::get('/dashboard/compliance', [TrainerDashboardController::class, 'dailyCompliance']);
     Route::get('/dashboard/alerts', [TrainerDashboardController::class, 'inactivityAlerts']);
 });
+
+Route::post('/user/update-fcm', [AuthController::class, 'updateFcmToken'])->middleware('auth:sanctum');
+
