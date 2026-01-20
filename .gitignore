@@ -22,6 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Firebase credentials (NEVER commit this!)
+/storage/firebase-credentials.json
 # --- AGREGAR ESTO PARA EVITAR SUBIR CACHÉ ---
 
 # Ignorar archivos cacheados del framework (Vistas compiladas, Sesiones, etc)

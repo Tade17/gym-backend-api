@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // Importante para la API más adelante
-use Illuminate\Database\Eloquent\Casts\Attribute; 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 
 // === AGREGAR ESTOS IMPORTS QUE FALTAN ===
@@ -34,20 +34,21 @@ class User extends Authenticatable
 
 
     protected $fillable = [
-    'first_name',
-    'last_name',
-    'email',
-    'phone_number',     // <--- Asegúrate que este esté
-    'gender',
-    'password',
-    'role',
-    'weight',
-    'height',
-    'birth_date',
-    'goals',
-    'profile_photo',
-    'assigned_trainer_id', // <--- AGREGA ESTO OBLIGATORIAMENTE
-];
+        'first_name',
+        'last_name',
+        'email',
+        'phone_number',     // <--- Asegúrate que este esté
+        'gender',
+        'password',
+        'role',
+        'weight',
+        'height',
+        'birth_date',
+        'goals',
+        'profile_photo',
+        'assigned_trainer_id', // <--- AGREGA ESTO OBLIGATORIAMENTE
+        'fcm_token', // Token para notificaciones push
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -66,7 +67,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed', 
+        'password' => 'hashed',
     ];
 
     // 1. Busca la variable $appends. Si no existe, créala.
@@ -81,18 +82,18 @@ class User extends Authenticatable
             if (str_starts_with($this->profile_photo, 'http')) {
                 return $this->profile_photo;
             }
-            
+
             // Si es un archivo local, crea el link completo http://127.0.0.1:8000/storage/...
             // NOTA: 'default.png' está en la raíz de public, no en storage, así que validamos:
             if ($this->profile_photo === 'default.png') {
-                 return asset('default.png');
+                return asset('default.png');
             }
 
             return asset('storage/' . $this->profile_photo);
         }
 
         // Si no tiene foto, devuelve null o una imagen por defecto
-        return asset('default.png'); 
+        return asset('default.png');
     }
 
 
@@ -159,48 +160,48 @@ class User extends Authenticatable
     }
 
     protected static function booted()
-{
-    static::created(function ($user) {
-        if ($user->role === 'trainer') {
-            
-            $duraciones = [
-                ['days' => 30,  'label' => 'Mensual',    'multiplier' => 1],
-                ['days' => 90,  'label' => 'Trimestral', 'multiplier' => 3],
-                ['days' => 365, 'label' => 'Anual',      'multiplier' => 12],
-            ];
+    {
+        static::created(function ($user) {
+            if ($user->role === 'trainer') {
 
-            $tipos = [
-                ['type' => 'basic',        'name' => 'Plan Básico',        'base_price' => 50],
-                ['type' => 'Pro',          'name' => 'Plan Pro',           'base_price' => 100],
-                ['type' => 'Personalized', 'name' => 'Plan Personalizado', 'base_price' => 150],
-            ];
+                $duraciones = [
+                    ['days' => 30, 'label' => 'Mensual', 'multiplier' => 1],
+                    ['days' => 90, 'label' => 'Trimestral', 'multiplier' => 3],
+                    ['days' => 365, 'label' => 'Anual', 'multiplier' => 12],
+                ];
 
-            foreach ($tipos as $tipo) {
-                foreach ($duraciones as $duracion) {
-                    
-                    // Calculamos un precio base sugerido (opcional, puedes poner 0)
-                    $price = $tipo['base_price'] * $duracion['multiplier'];
-                    if ($duracion['days'] > 30) {
-                        $price = $price * 0.90;
+                $tipos = [
+                    ['type' => 'basic', 'name' => 'Plan Básico', 'base_price' => 50],
+                    ['type' => 'Pro', 'name' => 'Plan Pro', 'base_price' => 100],
+                    ['type' => 'Personalized', 'name' => 'Plan Personalizado', 'base_price' => 150],
+                ];
+
+                foreach ($tipos as $tipo) {
+                    foreach ($duraciones as $duracion) {
+
+                        // Calculamos un precio base sugerido (opcional, puedes poner 0)
+                        $price = $tipo['base_price'] * $duracion['multiplier'];
+                        if ($duracion['days'] > 30) {
+                            $price = $price * 0.90;
+                        }
+
+                        Plan::create([
+                            'name' => $tipo['name'],
+                            'type' => $tipo['type'],
+                            'price' => round($price, 2),
+                            'duration_days' => $duracion['days'],
+
+                            // CAMBIO 1: Descripción genérica para obligar a editar
+                            'description' => 'Describe los beneficios de este plan aquí...',
+
+                            // CAMBIO 2: Todos nacen apagados (false / 0)
+                            'is_active' => false,
+
+                            'trainer_id' => $user->id
+                        ]);
                     }
-
-                    Plan::create([
-                    'name'          => $tipo['name'],
-                    'type'          => $tipo['type'],
-                    'price'         => round($price, 2),
-                    'duration_days' => $duracion['days'],
-                    
-                    // CAMBIO 1: Descripción genérica para obligar a editar
-                    'description'   => 'Describe los beneficios de este plan aquí...', 
-                    
-                    // CAMBIO 2: Todos nacen apagados (false / 0)
-                    'is_active'     => false, 
-                    
-                    'trainer_id'    => $user->id
-                ]);
                 }
             }
-        }
-    });
-}    
+        });
+    }
 }

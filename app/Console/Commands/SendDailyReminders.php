@@ -45,8 +45,8 @@ class SendDailyReminders extends Command
 
         foreach ($meals as $meal) {
             $user = $meal->dietPlan->user;
-            if ($user && $user->device_token) {
-                $this->sendPush($user->device_token, 'Meal Reminder', "Time for: {$meal->name}");
+            if ($user && $user->fcm_token) {
+                $this->sendPush($user->fcm_token, 'Meal Reminder', "Time for: {$meal->name}");
             }
         }
     }
@@ -56,7 +56,7 @@ class SendDailyReminders extends Command
         $messaging = app('firebase.messaging');
 
         $message = CloudMessage::withTarget('token', $token)
-            ->withNotification(Notification::create($title, $body)); 
+            ->withNotification(Notification::create($title, $body));
         try {
             $messaging->send($message);
             Log::info('Notificación enviada con éxito a: ' . $token);
