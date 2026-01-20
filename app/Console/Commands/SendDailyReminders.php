@@ -2,8 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\DietPlanMeal;
+use Illuminate\Console\Command;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
+use Illuminate\Support\Facades\Log;
 class SendDailyReminders extends Command
 {
     /**
@@ -26,20 +29,40 @@ class SendDailyReminders extends Command
     public function handle()
     {
         $now = now();
-    $today = $now->toDateString();
+        $today = $now->toDateString();
+        $timeWindow = $now->copy()->addMinutes(30)->toTimeString();
+        $currentTime = $now->toTimeString();
 
-    // 1. Recordatorio de Nutrición (Avisa 15 min antes de la hora sugerida)
-    $meals = DietPlanMeal::whereHas('dietPlan', function($q) use ($today) {
-                $q->whereHas('assignedDiets', function($sq) use ($today) {
-                    $sq->whereDate('start_date', '<=', $today)->whereDate('end_date', '>=', $today);
-                });
-            })
-            ->whereTime('suggested_time', '>=', $now->toTimeString())
-            ->whereTime('suggested_time', '<=', $now->addMinutes(30)->toTimeString())
+        // 1. Recordatorio de Nutrición (Avisa 15 min antes de la hora sugerida)
+        $meals = DietPlanMeal::whereHas('dietPlan', function ($q) use ($today) {
+            $q->whereHas('assignedDiets', function ($sq) use ($today) {
+                $sq->whereDate('start_date', '<=', $today)->whereDate('end_date', '>=', $today);
+            });
+        })
+            ->whereTime('suggested_time', '>=', $currentTime)
+            ->whereTime('suggested_time', '<=', $timeWindow)
             ->get();
 
-    foreach ($meals as $meal) {
-        // Lógica de envío al token del usuario vinculado...
+        foreach ($meals as $meal) {
+            $user = $meal->dietPlan->user;
+            if ($user && $user->device_token) {
+                $this->sendPush($user->device_token, 'Meal Reminder', "Time for: {$meal->name}");
+            }
+        }
     }
+
+    private function sendPush($token, $title, $body)
+    {
+        $messaging = app('firebase.messaging');
+
+        $message = CloudMessage::withTarget('token', $token)
+            ->withNotification(Notification::create($title, $body)); 
+        try {
+            $messaging->send($message);
+            Log::info('Notificación enviada con éxito a: ' . $token);
+        } catch (\Exception $e) {
+            Log::error('Error enviando PUSH: ' . $e->getMessage());
+        }
     }
 }
+
