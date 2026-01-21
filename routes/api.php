@@ -38,7 +38,7 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
         return $request->user();
     });
     // AGREGA ESTAS DOS:
-    Route::post('/update-profile', [AuthController::class, 'updateProfile']); 
+    Route::post('/update-profile', [AuthController::class, 'updateProfile']);
     Route::post('/update-password', [AuthController::class, 'updatePassword']);
     Route::delete('/delete-profile-photo', [AuthController::class, 'deleteProfilePhoto']);
 });
@@ -56,10 +56,10 @@ Route::get('/user', function (Request $request) {
 // Rutas públicas de ejercicios para insertar en distintas rutinas
 Route::get('/exercises', [ExerciseController::class, 'index']);
 Route::get('/exercises/{id}', [ExerciseController::class, 'show']);
- // EJERCICIOS
-    Route::post('/exercises', [ExerciseController::class, 'store']);
-    Route::put('/exercises/{id}', [ExerciseController::class, 'update']);
-    Route::delete('/exercises/{id}', [ExerciseController::class, 'destroy']);
+// EJERCICIOS
+Route::post('/exercises', [ExerciseController::class, 'store']);
+Route::put('/exercises/{id}', [ExerciseController::class, 'update']);
+Route::delete('/exercises/{id}', [ExerciseController::class, 'destroy']);
 
 //Rutas públicas para meals->comidas para insertar en distintas dietas
 Route::get('/meals', [MealController::class, 'index']);
@@ -68,19 +68,13 @@ Route::post('/meals', [MealController::class, 'store']);
 Route::put('/meals/{id}', [MealController::class, 'update']);
 Route::delete('/meals/{id}', [MealController::class, 'destroy']);
 
-Route::get('/plans', [PlanController::class, 'index']); 
+// Ruta pública para ver planes de un entrenador específico (para clientes)
+Route::get('/plans/public', [PlanController::class, 'publicIndex']);
 Route::get('/plans/{id}', [PlanController::class, 'show']);
 
-// // RUTINAS
-//     Route::get('/routines', [RoutineController::class, 'index']);
-//     Route::post('/routines', [RoutineController::class, 'store']);
-//     Route::put('/routines/{id}', [RoutineController::class, 'update']);
-//     Route::delete('/routines/{id}', [RoutineController::class, 'destroy']);
-// // Agregar ejercicio a una rutina específica
-//     Route::post('/routines/{routineId}/exercises', [RoutineExerciseController::class, 'store']);
 // Rutas Protegidas (Necesitas Token para Crear/Editar/Borrar)
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     Route::get('/users', function (Illuminate\Http\Request $request) {
         $query = \App\Models\User::where('role', 'client');
 
@@ -96,10 +90,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/subscribe', [SubscriptionController::class, 'store']);
     Route::get('/my-subscription', [SubscriptionController::class, 'mySubscription']);
     Route::get('/subscriptions/summary', [SubscriptionController::class, 'summary']);
-    // PLANES
-    //Route::get('/plans', [PlanController::class, 'index']);
+    // PLANES (ahora protegido - para el dashboard del entrenador)
+    Route::get('/plans', [PlanController::class, 'index']);
+    Route::get('/plans/{id}', [PlanController::class, 'show']);
     Route::post('/plans', [PlanController::class, 'store']);
-    //Route::get('/plans/{id}', [PlanController::class, 'show']);
     Route::put('/plans/{id}', [PlanController::class, 'update']);
     Route::delete('/plans/{id}', [PlanController::class, 'destroy']);
 
@@ -150,7 +144,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/meals/{mealId}/food', [MealFoodController::class, 'store']);
     //Quitar un alimento a una comida especifica
     Route::delete('/meals/{mealId}/food/{foodId}', [MealFoodController::class, 'destroy']);
-    
+
     // para ver las dietas como usuario
     Route::get('/my-diet', [AssignedDietController::class, 'showUserDiet']);
     // --- NUTRICIÓN (RF-20) ---
@@ -172,7 +166,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::post('/assignments/individual-diet', [AssignmentController::class, 'assignDietToUser']);
 
     // Asignación Individual
-    Route::post('/assigned-diets', [AssignedDietController::class, 'store']); 
+    Route::post('/assigned-diets', [AssignedDietController::class, 'store']);
     // Asignación Masiva
     Route::post('/assigned-diets/massive', [AssignedDietController::class, 'storeMassive']);
 
@@ -187,7 +181,8 @@ Route::middleware('auth:sanctum')->group(function () {
     //(RF-17, RF-18, RF-23) ---
     // Marcar lista la rutina y dar estrellas
     Route::put('/schedule/{id}/complete', [AssignedRoutineController::class, 'complete']);
-
+    // Cancelar entrenamiento (elimina workout_log y exercise_logs)
+    Route::post('/cancel-workout', [AssignedRoutineController::class, 'cancelWorkout']);
 
     // --- DASHBOARD DEL ENTRENADOR (RF-13) ---
     Route::prefix('trainer/dashboard')->group(function () {
@@ -210,3 +205,6 @@ Route::middleware('auth:sanctum')->prefix('trainer')->group(function () {
     Route::get('/dashboard/compliance', [TrainerDashboardController::class, 'dailyCompliance']);
     Route::get('/dashboard/alerts', [TrainerDashboardController::class, 'inactivityAlerts']);
 });
+
+Route::post('/user/update-fcm', [AuthController::class, 'updateFcmToken'])->middleware('auth:sanctum');
+

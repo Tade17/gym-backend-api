@@ -15,7 +15,7 @@ class DietPlanController extends Controller
     {
         // Traemos el plan -> sus dias/horas -> la comida -> los alimentos
         $plans = DietPlan::where('trainer_id', Auth::id())
-            ->with(['dietPlanMeals.meal.foods']) 
+            ->with(['dietPlanMeals.meal.food'])
             ->get();
 
         return response()->json($plans);
@@ -24,61 +24,61 @@ class DietPlanController extends Controller
 
 
     // POST /api/diet-plans
-public function store(Request $request)
-{
-    // 1. Validación extendida para recibir la estructura del plan
-    $request->validate([
-        'name' => 'required|string',
-        'goal' => 'required|string',
-        'description' => 'nullable|string',
-        'days' => 'required|array', // Se espera un objeto con días (monday, tuesday...)
-    ]);
+    public function store(Request $request)
+    {
+        // 1. Validación extendida para recibir la estructura del plan
+        $request->validate([
+            'name' => 'required|string',
+            'goal' => 'required|string',
+            'description' => 'nullable|string',
+            'days' => 'required|array', // Se espera un objeto con días (monday, tuesday...)
+        ]);
 
-    try {
-        return DB::transaction(function () use ($request) {
-            // A. Crear el Plan Maestro
-            $dietPlan = DietPlan::create([
-                'name' => $request->name,
-                'description' => $request->description,
-                'goal' => $request->goal,
-                'trainer_id' => Auth::id(),
-            ]);
+        try {
+            return DB::transaction(function () use ($request) {
+                // A. Crear el Plan Maestro
+                $dietPlan = DietPlan::create([
+                    'name' => $request->name,
+                    'description' => $request->description,
+                    'goal' => $request->goal,
+                    'trainer_id' => Auth::id(),
+                ]);
 
-            // B. Procesar cada día (monday, tuesday, etc.)
-            foreach ($request->days as $dayName => $mealsInDay) {
-                foreach ($mealsInDay as $mealData) {
-                    
-                    // C. Crear la 'Meal' técnica para este bloque horario
-                    $meal = Meal::create([
-                        'name' => "Comida de {$dietPlan->name} - {$dayName}",
-                        'description' => "Generada automáticamente"
-                    ]);
+                // B. Procesar cada día (monday, tuesday, etc.)
+                foreach ($request->days as $dayName => $mealsInDay) {
+                    foreach ($mealsInDay as $mealData) {
 
-                    // D. Asociar Alimentos a esta Meal (Tabla meal_food)
-                    foreach ($mealData['foods'] as $foodItem) {
-                        $meal->food()->attach($foodItem['id'], [
-                            'quantity' => $foodItem['quantity']
+                        // C. Crear la 'Meal' técnica para este bloque horario
+                        $meal = Meal::create([
+                            'name' => "Comida de {$dietPlan->name} - {$dayName}",
+                            'description' => "Generada automáticamente"
+                        ]);
+
+                        // D. Asociar Alimentos a esta Meal (Tabla meal_food)
+                        foreach ($mealData['foods'] as $foodItem) {
+                            $meal->food()->attach($foodItem['id'], [
+                                'quantity' => $foodItem['quantity']
+                            ]);
+                        }
+
+                        // E. Vincular la Meal al Plan de Dieta (Tabla diet_plan_meal)
+                        $dietPlan->meals()->attach($meal->id, [
+                            'suggested_time' => $mealData['time'] ?? '08:00:00',
+                            'meal_type' => $mealData['type'], // breakfast, lunch...
+                            'day_of_week' => $dayName,       // monday, tuesday...
                         ]);
                     }
-
-                    // E. Vincular la Meal al Plan de Dieta (Tabla diet_plan_meal)
-                    $dietPlan->meals()->attach($meal->id, [
-                        'suggested_time' => $mealData['time'] ?? '08:00:00',
-                        'meal_type' => $mealData['type'], // breakfast, lunch...
-                        'day_of_week' => $dayName,       // monday, tuesday...
-                    ]);
                 }
-            }
 
-            return response()->json([
-                'message' => 'Plan de dieta y estructura creados con éxito',
-                'data' => $dietPlan->load('meals.food')
-            ], 201);
-        });
-    } catch (\Exception $e) {
-        return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+                return response()->json([
+                    'message' => 'Plan de dieta y estructura creados con éxito',
+                    'data' => $dietPlan->load('meals.food')
+                ], 201);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        }
     }
-}
 
     // GET /api/diet-plans/{id}
     public function show($id)
@@ -111,7 +111,7 @@ public function store(Request $request)
         }
 
         $request->validate([
-            'name' => 'sometimes|string' . $id,
+            'name' => 'sometimes|string|unique:diet_plans,name,' . $id,
             'description' => 'nullable|string',
             'goal' => 'sometimes|string',
         ]);

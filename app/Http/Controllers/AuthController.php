@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Plan;          
-use App\Models\Subscription;   
+use App\Models\Plan;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // <--- PARA LA TRANSACCIÓN
 use Carbon\Carbon;              // <--- PARA LAS FECHAS
-use Illuminate\Support\Facades\Storage; 
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeClientMail;
 use Illuminate\Support\Facades\Http;
@@ -20,115 +20,118 @@ class AuthController extends Controller
 {
 
     public function index()
-{
-    // Traemos usuarios con rol 'client' E INCLUIMOS su suscripción y el plan asociado
-    $clients = User::where('role', 'client')
-                   ->with(['subscriptions' => function($query) {
-                       $query->latest(); // Solo la activa o la última
-                   }, 'subscriptions.plan']) 
-                   ->get();
+    {
+        // Traemos usuarios con rol 'client' E INCLUIMOS su suscripción y el plan asociado
+        $clients = User::where('role', 'client')
+            ->with([
+                'subscriptions' => function ($query) {
+                    $query->latest(); // Solo la activa o la última
+                },
+                'subscriptions.plan'
+            ])
+            ->get();
 
-    return response()->json($clients);
-}
+        return response()->json($clients);
+    }
 
     public function register(Request $request)
-{
-    // 1. VALIDACIÓN
-    $request->validate([
-        'first_name' => 'required|string',
-        'last_name' => 'required|string',
-        'email' => 'required|string|email|unique:users,email',
-        'password' => 'required|string|min:6',
-        'phone_number' => 'nullable|string|max:20',
-        'gender' => 'required|in:M,F', 
-        'role' => 'required|in:admin,trainer,client',
-        
-        // Nullables para el entrenador
-        'weight' => 'nullable|numeric', 
-        'height' => 'nullable|numeric',
-        'birth_date' => 'required|date',
-        'goals' => 'nullable|string',
-        'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        
-        // Nullable porque el entrenador no envía plan
-        'plan_id' => 'nullable|exists:plans,id' 
-    ]);
+    {
+        // 1. VALIDACIÓN
+        $request->validate([
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'email' => 'required|string|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'phone_number' => 'nullable|string|max:20',
+            'gender' => 'required|in:M,F',
+            'role' => 'required|in:admin,trainer,client',
 
-    // 2. INICIO DE LA TRANSACCIÓN (Ahora envuelve TODO)
-    return DB::transaction(function () use ($request) {
+            // Nullables para el entrenador
+            'weight' => 'nullable|numeric',
+            'height' => 'nullable|numeric',
+            'birth_date' => 'required|date',
+            'goals' => 'nullable|string',
+            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 
-        // A. Detectar si quien registra es un entrenador (Logueado previamente)
-        $trainerId = null;
-        if (Auth::guard('sanctum')->check()) {
-            $currentUser = Auth::guard('sanctum')->user();
-            if ($currentUser->role === 'trainer') {
-                $trainerId = $currentUser->id;
-            }
-        }
-
-        // B. Procesar la Foto de Perfil
-        $photoPath = 'default.png'; 
-        if ($request->hasFile('profile_photo')) {
-            $photoPath = $request->file('profile_photo')->store('profile_photos', 'public');
-        }
-
-        // C. Crear el Usuario (Entrenador o Alumno)
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
-            'gender' => $request->gender,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-            'weight' => $request->weight,
-            'height' => $request->height,
-            'birth_date' => $request->birth_date,
-            'goals' => $request->goals,
-            'profile_photo' => $photoPath, 
-            'assigned_trainer_id' => $trainerId 
+            // Nullable porque el entrenador no envía plan
+            'plan_id' => 'nullable|exists:plans,id'
         ]);
 
-        // --------------------------------------------------------------------------
-        // D. LOGICA CONDICIONAL DE SUSCRIPCIÓN (Aquí estaba el error)
-        // --------------------------------------------------------------------------
-        // Solo si enviaron un plan_id (Es decir, es un Alumno), creamos la suscripción.
-        if ($request->plan_id) {
-            $plan = Plan::findOrFail($request->plan_id); 
-            $durationInDays = $plan->duration_days; 
+        // 2. INICIO DE LA TRANSACCIÓN (Ahora envuelve TODO)
+        return DB::transaction(function () use ($request) {
 
-            Subscription::create([
-                'user_id' => $user->id,
-                'plan_id' => $plan->id,
-                'start_date' => Carbon::now(),
-                'end_date' => Carbon::now()->addDays($durationInDays),
-                'status' => 1
-            ]);
-        }
-        // Si no hay plan_id (Entrenador), el código salta esta parte y sigue feliz.
-
-        // E. Generar Token y Respuesta
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        // F. ENVÍO DE CREDENCIALES (Email y WhatsApp)
-        if ($user->role === 'client') {
-            $passwordRaw = $request->password; // Contraseña sin encriptar para el mensaje
-
-            // 1. Envío de Correo Electrónico
-            try {
-                Mail::to($user->email)->send(new WelcomeClientMail($user, $passwordRaw));
-            } catch (\Exception $e) {
-                \Log::error("Error enviando email: " . $e->getMessage());
+            // A. Detectar si quien registra es un entrenador (Logueado previamente)
+            $trainerId = null;
+            if (Auth::guard('sanctum')->check()) {
+                $currentUser = Auth::guard('sanctum')->user();
+                if ($currentUser->role === 'trainer') {
+                    $trainerId = $currentUser->id;
+                }
             }
 
-            // 2. Envío de WhatsApp (INTEGRACIÓN CON ULTRAMSG)
+            // B. Procesar la Foto de Perfil
+            $photoPath = 'default.png';
+            if ($request->hasFile('profile_photo')) {
+                $photoPath = $request->file('profile_photo')->store('profile_photos', 'public');
+            }
+
+            // C. Crear el Usuario (Entrenador o Alumno)
+            $user = User::create([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'email' => $request->email,
+                'phone_number' => $request->phone_number,
+                'gender' => $request->gender,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+                'weight' => $request->weight,
+                'height' => $request->height,
+                'birth_date' => $request->birth_date,
+                'goals' => $request->goals,
+                'profile_photo' => $photoPath,
+                'assigned_trainer_id' => $trainerId
+            ]);
+
+            // --------------------------------------------------------------------------
+            // D. LOGICA CONDICIONAL DE SUSCRIPCIÓN (Aquí estaba el error)
+            // --------------------------------------------------------------------------
+            // Solo si enviaron un plan_id (Es decir, es un Alumno), creamos la suscripción.
+            if ($request->plan_id) {
+                $plan = Plan::findOrFail($request->plan_id);
+                $durationInDays = $plan->duration_days;
+
+                Subscription::create([
+                    'user_id' => $user->id,
+                    'plan_id' => $plan->id,
+                    'start_date' => Carbon::now(),
+                    'end_date' => Carbon::now()->addDays($durationInDays),
+                    'status' => 1
+                ]);
+            }
+            // Si no hay plan_id (Entrenador), el código salta esta parte y sigue feliz.
+
+            // E. Generar Token y Respuesta
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            // F. ENVÍO DE CREDENCIALES (Email y WhatsApp)
+            if ($user->role === 'client') {
+                $passwordRaw = $request->password; // Contraseña sin encriptar para el mensaje
+
+                // 1. Envío de Correo Electrónico
+                try {
+                    Mail::to($user->email)->send(new WelcomeClientMail($user, $passwordRaw));
+                } catch (\Exception $e) {
+                    \Log::error("Error enviando email: " . $e->getMessage());
+                }
+
+                // 2. Envío de WhatsApp (INTEGRACIÓN CON ULTRAMSG)
                 try {
                     // Preparamos el mensaje
                     $mensajeWA = "¡Hola {$user->first_name}! Bienvenid@ a nuestro gimnasio. 🏋️\n\n" .
-                                 "Tus credenciales de acceso son:\n" .
-                                 "📧 Usuario: {$user->email}\n" .
-                                 "🔑 Clave: {$passwordRaw}\n\n" .
-                                 "Descarga nuestra App y empieza a entrenar hoy.";
+                        "Tus credenciales de acceso son:\n" .
+                        "📧 Usuario: {$user->email}\n" .
+                        "🔑 Clave: {$passwordRaw}\n\n" .
+                        "Descarga nuestra App y empieza a entrenar hoy.";
 
                     // Limpiamos el número (solo dejamos dígitos)
                     $cleanPhone = preg_replace('/[^0-9]/', '', $user->phone_number);
@@ -140,11 +143,11 @@ class AuthController extends Controller
                     // Validamos antes de enviar
                     if ($instance && $tokenWA && $cleanPhone) {
                         $url = "https://api.ultramsg.com/{$instance}/messages/chat";
-                        
+
                         Http::post($url, [
                             'token' => $tokenWA,
-                            'to'    => $cleanPhone,
-                            'body'  => $mensajeWA
+                            'to' => $cleanPhone,
+                            'body' => $mensajeWA
                         ]);
                     } else {
                         Log::warning("WhatsApp no enviado: Faltan credenciales en .env o el usuario no tiene teléfono.");
@@ -153,14 +156,14 @@ class AuthController extends Controller
                 } catch (\Exception $e) {
                     Log::error("Error enviando WhatsApp: " . $e->getMessage());
                 }
-        }
-        return response()->json([
-            'message' => 'Usuario registrado con éxito', // Mensaje genérico
-            'user' => $user,
-            'token' => $token
-        ], 201);
-    });
-}
+            }
+            return response()->json([
+                'message' => 'Usuario registrado con éxito', // Mensaje genérico
+                'user' => $user,
+                'token' => $token
+            ], 201);
+        });
+    }
     // 2. Login
     public function login(Request $request)
     {
@@ -180,7 +183,7 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
-        
+
         return response()->json([
             'message' => 'Login exitoso',
             'user' => $user,
@@ -205,9 +208,9 @@ class AuthController extends Controller
 
         $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email,' . $user->id,
-            'photo'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
         ]);
 
         $user->first_name = $request->first_name;
@@ -218,13 +221,13 @@ class AuthController extends Controller
         if ($request->hasFile('photo')) {
             // Eliminar foto anterior si existe y no es la default (opcional)
             // ...
-            
+
             // Guardar nueva foto en storage/app/public/profile-photos
             $path = $request->file('photo')->store('profile-photos', 'public');
-            
+
             // Si quieres guardar la URL completa en la BD o solo el path
             // Aquí guardamos solo el nombre del archivo o path relativo
-            $user->profile_photo = $path; 
+            $user->profile_photo = $path;
         }
 
         $user->save();
@@ -258,8 +261,8 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Contraseña actualizada con éxito.']);
     }
-        // Eliminar la foto de perfil y volver a la default
-   public function deleteProfilePhoto(Request $request)
+    // Eliminar la foto de perfil y volver a la default
+    public function deleteProfilePhoto(Request $request)
     {
         $user = $request->user();
 
@@ -281,7 +284,16 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Foto eliminada correctamente',
-            'photo_url' => $fallbackUrl 
+            'photo_url' => $fallbackUrl
         ]);
+    }
+
+    // Actualizar FCM Token para notificaciones push
+    public function updateFcmToken(Request $request)
+    {
+        $request->validate(['fcm_token' => 'required|string']);
+        $request->user()->update(['fcm_token' => $request->fcm_token]);
+
+        return response()->json(['message' => 'Token actualizado']);
     }
 }
