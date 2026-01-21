@@ -18,13 +18,16 @@ class AssignedRoutineController extends Controller
     public function myStudents()
     {
         $trainerId = Auth::id();
-        
+
         $students = User::where('assigned_trainer_id', $trainerId)
             ->where('role', 'client')
             // --- AGREGAMOS ESTO PARA TRAER PLANES Y SUSCRIPCIONES ---
-            ->with(['subscriptions' => function($query) {
-                $query->latest(); // Ordenamos para que la [0] sea la más reciente
-            }, 'subscriptions.plan']) 
+            ->with([
+                'subscriptions' => function ($query) {
+                    $query->latest(); // Ordenamos para que la [0] sea la más reciente
+                },
+                'subscriptions.plan'
+            ])
             // --------------------------------------------------------
             ->get();
 
@@ -74,8 +77,8 @@ class AssignedRoutineController extends Controller
     public function complete(Request $request, $id)
     {
         $request->validate([
-            'rating'     => 'required|integer|min:1|max:5',
-            'duration'   => 'required|integer',
+            'rating' => 'required|integer|min:1|max:5',
+            'duration' => 'required|integer',
             'workout_log_id' => 'required|exists:workout_logs,id',
             'notes' => 'sometimes|string'
         ]);
@@ -91,7 +94,7 @@ class AssignedRoutineController extends Controller
             // 2. Cerramos el Log de entrenamiento con la duración
             $workoutLog = WorkoutLog::findOrFail($request->workout_log_id);
             $workoutLog->update([
-                'duration'     => $request->duration,
+                'duration' => $request->duration,
                 'is_completed' => true, // Marcamos que la sesión terminó
                 'notes' => $request->notes
             ]);
@@ -114,5 +117,39 @@ class AssignedRoutineController extends Controller
         $log = WorkoutExerciseLog::create($request->all());
 
         return response()->json(['message' => 'Progreso guardado', 'data' => $log]);
+    }
+
+    /**
+     * Cancelar entrenamiento - Elimina el workout_log y todos sus exercise_logs
+     * Útil cuando el usuario sale antes de completar o decide saltarse el día
+     */
+    public function cancelWorkout(Request $request)
+    {
+        $request->validate([
+            'workout_log_id' => 'required|exists:workout_logs,id',
+        ]);
+
+        $workoutLog = WorkoutLog::where('id', $request->workout_log_id)
+            ->where('user_id', Auth::id())
+            ->where('is_completed', false) // Solo cancelar si no está completado
+            ->first();
+
+        if (!$workoutLog) {
+            return response()->json([
+                'message' => 'No se encontró el entrenamiento o ya fue completado'
+            ], 404);
+        }
+
+        DB::transaction(function () use ($workoutLog) {
+            // 1. Eliminar todos los exercise_logs relacionados
+            WorkoutExerciseLog::where('workout_log_id', $workoutLog->id)->delete();
+
+            // 2. Eliminar el workout_log
+            $workoutLog->delete();
+        });
+
+        return response()->json([
+            'message' => 'Entrenamiento cancelado correctamente'
+        ]);
     }
 }

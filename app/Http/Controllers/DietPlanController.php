@@ -15,7 +15,7 @@ class DietPlanController extends Controller
     {
         // Traemos el plan -> sus dias/horas -> la comida -> los alimentos
         $plans = DietPlan::where('trainer_id', Auth::id())
-            ->with(['dietPlanMeals.meal.foods'])
+            ->with(['dietPlanMeals.meal.food'])
             ->get();
 
         return response()->json($plans);

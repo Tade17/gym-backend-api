@@ -8,20 +8,27 @@ use Illuminate\Support\Facades\Auth;
 
 class PlanController extends Controller
 {
-    // 1. LISTAR (GET /api/plans)
+    // 1. LISTAR MIS PLANES (GET /api/plans) - Solo para entrenador autenticado
     public function index()
     {
-        $user = Auth::guard('sanctum')->user();
-        
-        if ($user) {
-            // Ordenamos por ID para que aparezcan en el orden de creación (Básico -> Pro -> Personalizado)
-            $planes = Plan::where('trainer_id', $user->id)
-                          ->orderBy('id', 'asc') 
-                          ->get();
-            return response()->json($planes, 200);
+        // Ahora que está protegido, Auth::id() siempre existe
+        $planes = Plan::where('trainer_id', Auth::id())
+            ->orderBy('id', 'asc')
+            ->get();
+        return response()->json($planes, 200);
+    }
+
+    // 1.1 LISTAR PLANES PÚBLICOS (GET /api/plans/public?trainer_id=X)
+    public function publicIndex(Request $request)
+    {
+        $query = Plan::where('is_active', true);
+
+        // Filtrar por entrenador si se especifica
+        if ($request->has('trainer_id')) {
+            $query->where('trainer_id', $request->trainer_id);
         }
 
-        return response()->json([], 200);
+        return response()->json($query->orderBy('price', 'asc')->get(), 200);
     }
 
     // 2. CREAR (POST /api/plans) - Opcional, ya que usamos la generación automática
@@ -32,26 +39,26 @@ class PlanController extends Controller
         }
 
         $request->validate([
-            'type'          => 'required|string', // Quitamos el 'in:' estricto por si quieres crear tipos nuevos
-            'price'         => 'required|numeric',
+            'type' => 'required|string', // Quitamos el 'in:' estricto por si quieres crear tipos nuevos
+            'price' => 'required|numeric',
             'duration_days' => 'required|integer',
-            'description'   => 'required|string',
-            'is_active'     => 'boolean',
+            'description' => 'required|string',
+            'is_active' => 'boolean',
         ]);
 
         $plan = Plan::create([
-            'name'          => 'Nuevo Plan Manual', // Nombre por defecto si es manual
-            'type'          => $request->type,
-            'price'         => $request->price,
+            'name' => 'Nuevo Plan Manual', // Nombre por defecto si es manual
+            'type' => $request->type,
+            'price' => $request->price,
             'duration_days' => $request->duration_days,
-            'description'   => $request->description,
-            'is_active'     => $request->is_active ?? false,
-            'trainer_id'    => Auth::id()
+            'description' => $request->description,
+            'is_active' => $request->is_active ?? false,
+            'trainer_id' => Auth::id()
         ]);
 
         return response()->json([
             'message' => 'Plan creado con éxito',
-            'data'    => $plan
+            'data' => $plan
         ], 201);
     }
 
@@ -82,21 +89,21 @@ class PlanController extends Controller
         // 2. Validar solo los campos editables
         // Importante: No validamos 'type' aquí para evitar conflictos de duplicados
         $request->validate([
-            'price'       => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:0',
             'description' => 'required|string|max:500',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         // 3. Actualizar
         $plan->update([
-            'price'       => $request->price,
+            'price' => $request->price,
             'description' => $request->description,
-            'is_active'   => $request->is_active
+            'is_active' => $request->is_active
         ]);
 
         return response()->json([
             'message' => 'Plan actualizado con éxito',
-            'data'    => $plan
+            'data' => $plan
         ], 200);
     }
 
