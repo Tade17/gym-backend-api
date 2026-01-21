@@ -18,15 +18,25 @@ class AssignedRoutineController extends Controller
     public function myStudents()
     {
         $trainerId = Auth::id();
-        
+
         $students = User::where('assigned_trainer_id', $trainerId)
             ->where('role', 'client')
-            // --- AGREGAMOS ESTO PARA TRAER PLANES Y SUSCRIPCIONES ---
-            ->with(['subscriptions' => function($query) {
-                $query->latest(); // Ordenamos para que la [0] sea la más reciente
-            }, 'subscriptions.plan']) 
-            // --------------------------------------------------------
+            ->with(['subscriptions' => function ($query) {
+                $query->latest()->with('plan'); 
+            }])
             ->get();
+        
+        // --- CÓDIGO TEMPORAL DE DEPURACIÓN (BORRAR DESPUÉS) ---
+        // Vamos a revisar el primer estudiante y su suscripción manualmente
+        $firstStudent = $students->first();
+        if ($firstStudent) {
+            $sub = $firstStudent->subscriptions->first();
+            if ($sub) {
+                // Si esto imprime NULL en la respuesta de red, es problema de BD o Modelo
+                \Log::info('Plan cargado: ' . json_encode($sub->plan)); 
+            }
+        }
+        // ------------------------------------------------------
 
         return response()->json($students);
     }

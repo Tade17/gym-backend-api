@@ -162,7 +162,7 @@ class RoutineController extends Controller
         $routine = Routine::with('exercises')->findOrFail($id);
         
         // Verificamos que pertenezca al entrenador (seguridad extra)
-        if ($routine->trainer_id !== auth()->id()) {
+        if ($routine->trainer_id !== Auth::id()) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
 

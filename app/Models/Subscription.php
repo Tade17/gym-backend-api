@@ -26,6 +26,7 @@ class Subscription extends Model
     // Una suscripción pertenece a un plan (RF-01)
     public function plan()
     {
-        return $this->belongsTo(Plan::class);
+        // Esto le dice a Laravel que la suscripción "pertenece a" un Plan
+        return $this->belongsTo(Plan::class, 'plan_id');
     }
 }
