@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; // Importante para la API más adelante
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 
@@ -37,7 +37,7 @@ class User extends Authenticatable
         'first_name',
         'last_name',
         'email',
-        'phone_number',     // <--- Asegúrate que este esté
+        'phone_number',     
         'gender',
         'password',
         'role',
@@ -46,7 +46,7 @@ class User extends Authenticatable
         'birth_date',
         'goals',
         'profile_photo',
-        'assigned_trainer_id', // <--- AGREGA ESTO OBLIGATORIAMENTE
+        'assigned_trainer_id',
         'fcm_token', // Token para notificaciones push
     ];
 
@@ -96,6 +96,15 @@ class User extends Authenticatable
         return asset('default.png');
     }
 
+    /**
+     * Estas funciones definen "Relaciones de Eloquent".
+     * Permiten que Laravel entienda cómo se conectan las tablas en la base de datos:
+     * 
+     * - belongsTo: Define que este usuario "pertenece a" otro (ej: un alumno tiene un entrenador).
+     * - hasMany: Define que este usuario "tiene muchos" registros asociados (ej: un entrenador tiene muchos alumnos o planes).
+     * 
+     * Gracias a esto, puedes acceder a los datos fácilmente: $user->trainer->name o $user->plans.
+     */
 
     //Si soy cliente, tengo un solo entrenador
     public function trainer()
@@ -112,7 +121,7 @@ class User extends Authenticatable
     // Relación: Un entrenador puede tener muchos planes
     public function plans()
     {
-        return $this->hasMany(Plan::class, 'train er_id');
+        return $this->hasMany(Plan::class, 'trainer_id');
     }
     public function routines()
     {

@@ -17,6 +17,11 @@ class Subscription extends Model
         'status' //active,expired
     ];
 
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+    ];
+
     // Una suscripción pertenece a un usuario
     public function user()
     {
