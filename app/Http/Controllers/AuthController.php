@@ -124,7 +124,7 @@ class AuthController extends Controller
                     \Log::error("Error enviando email: " . $e->getMessage());
                 }
 
-                // 2. Envío de WhatsApp (INTEGRACIÓN CON ULTRAMSG)
+                // 2. Envío de WhatsApp (INTEGRACIÓN CON WAHA)
                 try {
                     // Preparamos el mensaje
                     $mensajeWA = "¡Hola {$user->first_name}! Bienvenid@ a nuestro gimnasio. 🏋️\n\n" .
@@ -133,24 +133,16 @@ class AuthController extends Controller
                         "🔑 Clave: {$passwordRaw}\n\n" .
                         "Descarga nuestra App y empieza a entrenar hoy.";
 
-                    // Limpiamos el número (solo dejamos dígitos)
-                    $cleanPhone = preg_replace('/[^0-9]/', '', $user->phone_number);
+                    // Validamos que el usuario tenga teléfono
+                    if ($user->phone_number) {
+                        $whatsAppService = new \App\Services\WhatsAppService();
+                        $result = $whatsAppService->sendMessage($user->phone_number, $mensajeWA);
 
-                    // Obtenemos credenciales del .env
-                    $instance = env('ULTRAMSG_INSTANCE');
-                    $tokenWA = env('ULTRAMSG_TOKEN');
-
-                    // Validamos antes de enviar
-                    if ($instance && $tokenWA && $cleanPhone) {
-                        $url = "https://api.ultramsg.com/{$instance}/messages/chat";
-
-                        Http::post($url, [
-                            'token' => $tokenWA,
-                            'to' => $cleanPhone,
-                            'body' => $mensajeWA
-                        ]);
+                        if (!$result['success']) {
+                            Log::warning("WhatsApp no enviado: " . ($result['error'] ?? 'Error desconocido'));
+                        }
                     } else {
-                        Log::warning("WhatsApp no enviado: Faltan credenciales en .env o el usuario no tiene teléfono.");
+                        Log::warning("WhatsApp no enviado: El usuario no tiene teléfono registrado.");
                     }
 
                 } catch (\Exception $e) {

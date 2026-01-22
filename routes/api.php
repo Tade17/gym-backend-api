@@ -75,6 +75,9 @@ Route::get('/plans/{id}', [PlanController::class, 'show']);
 // Rutas Protegidas (Necesitas Token para Crear/Editar/Borrar)
 Route::middleware('auth:sanctum')->group(function () {
 
+    // CLIENTES (filtrable por tipo de plan)
+    Route::get('/clients', [ClientController::class, 'index']);
+
     Route::get('/users', function (Illuminate\Http\Request $request) {
         $query = \App\Models\User::where('role', 'client');
 
@@ -208,3 +211,8 @@ Route::middleware('auth:sanctum')->prefix('trainer')->group(function () {
 
 Route::post('/user/update-fcm', [AuthController::class, 'updateFcmToken'])->middleware('auth:sanctum');
 
+// NOTIFICACIONES WHATSAPP (WAHA)
+Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
+    Route::post('/expiring-alert', [\App\Http\Controllers\NotificationController::class, 'sendExpiringAlert']);
+    Route::get('/whatsapp-status', [\App\Http\Controllers\NotificationController::class, 'checkStatus']);
+});
