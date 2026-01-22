@@ -23,7 +23,7 @@ class NotifyRetention extends Command
      *
      * @var string
      */
-    protected $description = 'Notificar a usuarios que faltaron a 3 sesiones o llevan 2 semanas fuera';
+    protected $description = 'Notificar a usuarios que faltaron a 3 sesiones';
 
     /**
      * Execute the console command.

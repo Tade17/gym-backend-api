@@ -15,7 +15,8 @@ class RoutineController extends Controller
             ->with('exercises')
             ->get();
         // Devolvemos en formato { data: [...] } para consistencia con tu Frontend
-        return response()->json(['data' => $routines], 200);    }
+        return response()->json(['data' => $routines], 200);
+    }
 
     // POST: Crear rutina
     public function store(Request $request)
@@ -24,24 +25,23 @@ class RoutineController extends Controller
             return response()->json(['message' => 'Solo los trainers pueden crear rutinas'], 403);
         }
 
-        $validated=$request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|unique:routines,name',
             'description' => 'nullable|string',
             'level' => 'required|in:beginner,intermediate,advanced',
             'estimated_duration' => 'required|integer|min:1',
-            
-            // Validamos el array de ejercicios que viene del Frontend
-            'exercises' => 'required|array|min:5',
-            'exercises.*.id' => 'required|exists:exercises,id',
-            'exercises.*.sets' => 'required|integer|min:1',
-            'exercises.*.reps' => 'required|integer|min:1',
-            'exercises.*.rest_time' => 'required|integer|min:0',
+
+            // Ejercicios opcionales - se pueden agregar después
+            'exercises' => 'sometimes|array',
+            'exercises.*.id' => 'required_with:exercises|exists:exercises,id',
+            'exercises.*.sets' => 'required_with:exercises|integer|min:1',
+            'exercises.*.reps' => 'required_with:exercises|integer|min:1',
+            'exercises.*.rest_time' => 'required_with:exercises|integer|min:0',
         ]);
 
         // 2. TRANSACCIÓN
-        // AQUÍ ESTABA EL ERROR: Agregamos $validated al use()
         return DB::transaction(function () use ($request, $validated) {
-            
+
             // A. Crear la Rutina Padre
             $routine = Routine::create([
                 'name' => $validated['name'],
@@ -51,36 +51,22 @@ class RoutineController extends Controller
                 'trainer_id' => Auth::id(),
             ]);
 
-            // B. Preparar los ejercicios permitiendo duplicados
-            $exercisesData = [];
-            foreach ($validated['exercises'] as $ex) {
-                // Al NO usar el ID como clave del array ($exercisesData[]), 
-                // permitimos que se agreguen múltiples entradas del mismo ejercicio.
-                $exercisesData[] = [
-                    'exercise_id' => $ex['id'],
-                    'sets' => $ex['sets'],
-                    'reps' => $ex['reps'],
-                    'rest_time' => $ex['rest_time'],
-                    'notes' => $ex['notes'] ?? null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            // B. Solo agregar ejercicios si vienen en el request
+            if (!empty($validated['exercises'])) {
+                $exercisesData = [];
+                foreach ($validated['exercises'] as $ex) {
+                    $exercisesData[] = [
+                        'exercise_id' => $ex['id'],
+                        'sets' => $ex['sets'],
+                        'reps' => $ex['reps'],
+                        'rest_time' => $ex['rest_time'],
+                        'notes' => $ex['notes'] ?? null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                $routine->exercises()->attach($exercisesData);
             }
-
-            // B. Preparar los ejercicios (Cambiamos la estructura de $exercisesData)
-            // $exercisesData = [];
-            // foreach ($validated['exercises'] as $ex) {
-            //     // En lugar de usar el ID como clave, creamos un array simple de objetos
-            //     $exercisesData[] = [
-            //         'exercise_id' => $ex['id'],
-            //         'sets' => $ex['sets'],
-            //         'reps' => $ex['reps'],
-            //         'rest_time' => $ex['rest_time']
-            //     ];
-            // }
-
-            // C. Insertar todos los ejercicios
-            $routine->exercises()->attach($exercisesData);
 
             return response()->json([
                 'message' => 'Rutina creada con éxito',
@@ -107,7 +93,7 @@ class RoutineController extends Controller
             'level' => 'sometimes|in:beginner,intermediate,advanced',
             'estimated_duration' => 'sometimes|integer|min:1',
             // 'plan_id' => ... // ELIMINADO
-            
+
             'exercises' => 'sometimes|array',
             'exercises.*.id' => 'required_with:exercises|exists:exercises,id',
             'exercises.*.sets' => 'required_with:exercises|integer|min:1',
@@ -117,7 +103,7 @@ class RoutineController extends Controller
 
         // 2. TRANSACCIÓN UPDATE
         return DB::transaction(function () use ($routine, $request, $validated) {
-            
+
             // A. Actualizar datos básicos (Sin plan_id)
             $routine->update($request->only(['name', 'description', 'level', 'estimated_duration']));
 
@@ -136,7 +122,7 @@ class RoutineController extends Controller
             }
 
             return response()->json([
-                'message' => 'Rutina actualizada correctamente', 
+                'message' => 'Rutina actualizada correctamente',
                 'data' => $routine->load('exercises')
             ], 200);
         });
@@ -160,7 +146,7 @@ class RoutineController extends Controller
     {
         // Cargamos la rutina con sus ejercicios para que React pueda rellenar el formulario
         $routine = Routine::with('exercises')->findOrFail($id);
-        
+
         // Verificamos que pertenezca al entrenador (seguridad extra)
         if ($routine->trainer_id !== Auth::id()) {
             return response()->json(['message' => 'No autorizado'], 403);

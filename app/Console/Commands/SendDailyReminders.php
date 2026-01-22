@@ -21,7 +21,7 @@ class SendDailyReminders extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'avisar a los usuarios sus comidas del dia con 15 minutos de anticipacion';
 
     /**
      * Execute the console command.

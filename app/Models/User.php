@@ -96,15 +96,6 @@ class User extends Authenticatable
         return asset('default.png');
     }
 
-    /**
-     * Estas funciones definen "Relaciones de Eloquent".
-     * Permiten que Laravel entienda cómo se conectan las tablas en la base de datos:
-     * 
-     * - belongsTo: Define que este usuario "pertenece a" otro (ej: un alumno tiene un entrenador).
-     * - hasMany: Define que este usuario "tiene muchos" registros asociados (ej: un entrenador tiene muchos alumnos o planes).
-     * 
-     * Gracias a esto, puedes acceder a los datos fácilmente: $user->trainer->name o $user->plans.
-     */
 
     //Si soy cliente, tengo un solo entrenador
     public function trainer()

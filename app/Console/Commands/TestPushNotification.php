@@ -37,7 +37,7 @@ class TestPushNotification extends Command
 
             $message = CloudMessage::withTarget('token', $user->fcm_token)
                 ->withNotification(Notification::create(
-                    '¡Prueba exitosa! 🎉',
+                    '¡Prueba exitosa! gil ',
                     'Las notificaciones push están funcionando correctamente.'
                 ))
                 ->withData(['click_action' => 'FLUTTER_NOTIFICATION_CLICK']);
