@@ -28,12 +28,7 @@ class DietPlanMealController extends Controller
             'day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
         ]);
 
-        if ($dietPlan->meals()->where('meal_id', $request->meal_id)->exists()) {
-            return response()->json([
-                'message' => 'Esta comida ya está asignada al plan'
-            ], 409);
-        }
-
+        // Se permite asignar la misma comida varias veces (diferentes días/horarios)
         $dietPlan->meals()->attach($request->meal_id, [
             'suggested_time' => $request->suggested_time,
             'meal_type' => $request->meal_type,

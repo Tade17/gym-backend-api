@@ -148,11 +148,15 @@ Route::middleware('auth:sanctum')->group(function () {
     //Quitar un alimento a una comida especifica
     Route::delete('/meals/{mealId}/food/{foodId}', [MealFoodController::class, 'destroy']);
 
-    // para ver las dietas como usuario
+    // para ver las dietas como usuario (pasar ?day=monday para filtrar)
     Route::get('/my-diet', [AssignedDietController::class, 'showUserDiet']);
+    // Obtener solo las comidas de HOY (para Home)
+    Route::get('/my-diet/today', [AssignedDietController::class, 'todayMeals']);
     // --- NUTRICIÓN (RF-20) ---
     // Subir foto de comida y marcar como consumida
     Route::post('/my-meals/log', [MealLogController::class, 'store']);
+    // Marcar/desmarcar comida como completada (toggle)
+    Route::post('/my-meals/toggle', [MealLogController::class, 'toggleComplete']);
 
 
     // Gestión del Entrenador

@@ -39,15 +39,35 @@ class PlanController extends Controller
         }
 
         $request->validate([
-            'type' => 'required|string', // Quitamos el 'in:' estricto por si quieres crear tipos nuevos
+            'type' => 'required|string|in:Basic,Pro,Personalized', // Solo estos 3 tipos
             'price' => 'required|numeric',
             'duration_days' => 'required|integer',
             'description' => 'required|string',
             'is_active' => 'boolean',
         ]);
 
+        // Verificar si ya existe un plan de este tipo para este entrenador
+        $existingPlan = Plan::where('trainer_id', Auth::id())
+            ->where('type', $request->type)
+            ->first();
+
+        if ($existingPlan) {
+            return response()->json([
+                'message' => "Ya tienes un plan de tipo '{$request->type}'. Puedes editarlo en lugar de crear uno nuevo.",
+                'existing_plan' => $existingPlan
+            ], 422);
+        }
+
+        // Verificar que no tenga más de 3 planes en total
+        $totalPlans = Plan::where('trainer_id', Auth::id())->count();
+        if ($totalPlans >= 3) {
+            return response()->json([
+                'message' => 'Ya tienes los 3 planes permitidos (Basic, Pro, Premium). Solo puedes editarlos.'
+            ], 422);
+        }
+
         $plan = Plan::create([
-            'name' => 'Nuevo Plan Manual', // Nombre por defecto si es manual
+            'name' => "Plan {$request->type}",
             'type' => $request->type,
             'price' => $request->price,
             'duration_days' => $request->duration_days,
@@ -86,20 +106,15 @@ class PlanController extends Controller
             return response()->json(['message' => 'No autorizado o no encontrado'], 404);
         }
 
-        // 2. Validar solo los campos editables
-        // Importante: No validamos 'type' aquí para evitar conflictos de duplicados
+        // 2. Validar solo los campos que se envíen (update parcial)
         $request->validate([
-            'price' => 'required|numeric|min:0',
-            'description' => 'required|string|max:500',
-            'is_active' => 'boolean',
+            'price' => 'sometimes|nullable|numeric|min:0',
+            'description' => 'sometimes|nullable|string|max:500',
+            'is_active' => 'sometimes|boolean',
         ]);
 
-        // 3. Actualizar
-        $plan->update([
-            'price' => $request->price,
-            'description' => $request->description,
-            'is_active' => $request->is_active
-        ]);
+        // 3. Actualizar solo los campos que vienen en el request
+        $plan->update($request->only(['price', 'description', 'is_active']));
 
         return response()->json([
             'message' => 'Plan actualizado con éxito',
